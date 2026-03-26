@@ -1,57 +1,57 @@
-resource "aws_vpc" "nba_vpc" {
+resource "aws_vpc" "project_vpc" {
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
   enable_dns_hostnames = true
 
   tags = {
-    Name = "${var.project_name}-vpc"
+    Name = "${var.project_name}-{var.env}-vpc"
   }
 }
 
-resource "aws_internet_gateway" "nba_vpc" {
-  vpc_id = aws_vpc.nba_vpc.id
+resource "aws_internet_gateway" "project_vpc" {
+  vpc_id = aws_vpc.project_vpc.id
 
   tags = {
-    Name = "${var.project_name}-igw"
+    Name = "${var.project_name}-{var.env}-igw"
   }
 }
 
 # ---------------- PUBLIC SUBNETS ----------------
 resource "aws_subnet" "public" {
   count                   = length(var.public_subnet_cidrs)
-  vpc_id                  = aws_vpc.nba_vpc.id
+  vpc_id                  = aws_vpc.project_vpc.id
   cidr_block              = var.public_subnet_cidrs[count.index]
   availability_zone       = var.azs[count.index]
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "${var.project_name}-public-${count.index + 1}"
+    Name = "${var.project_name}-{var.env}-public-${count.index + 1}"
   }
 }
 
 # ---------------- PRIVATE SUBNETS ----------------
 resource "aws_subnet" "private" {
   count             = length(var.private_subnet_cidrs)
-  vpc_id            = aws_vpc.nba_vpc.id
+  vpc_id            = aws_vpc.project_vpc.id
   cidr_block        = var.private_subnet_cidrs[count.index]
   availability_zone = var.azs[count.index]
 
   tags = {
-    Name = "${var.project_name}-private-${count.index + 1}"
+    Name = "${var.project_name}-{var.env}-private-${count.index + 1}"
   }
 }
 
 # ---------------- ROUTE TABLES ----------------
 resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.nba_vpc.id
+  vpc_id = aws_vpc.project_vpc.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.nba_vpc.id
+    gateway_id = aws_internet_gateway.project_vpc.id
   }
 
   tags = {
-    Name = "${var.project_name}-public-rt"
+    Name = "${var.project_name}-{var.env}-public-rt"
   }
 }
 
@@ -67,32 +67,32 @@ resource "aws_eip" "nat" {
   domain = "vpc"
 }
 
-resource "aws_nat_gateway" "nba_vpc" {
+resource "aws_nat_gateway" "project_vpc" {
   count         = var.enable_nat_gateway ? 1 : 0
   allocation_id = aws_eip.nat[0].id
   subnet_id     = aws_subnet.public[0].id
 
-  depends_on = [aws_internet_gateway.nba_vpc]
+  depends_on = [aws_internet_gateway.project_vpc]
 
   tags = {
-    Name = "${var.project_name}-nat-gw"
+    Name = "${var.project_name}-{var.env}-nat-gw"
   }
 }
 
 # ---------------- PRIVATE ROUTE TABLE ----------------
 resource "aws_route_table" "private" {
-  vpc_id = aws_vpc.nba_vpc.id
+  vpc_id = aws_vpc.project_vpc.id
 
   dynamic "route" {
     for_each = var.enable_nat_gateway ? [1] : []
     content {
       cidr_block     = "0.0.0.0/0"
-      nat_gateway_id = aws_nat_gateway.nba_vpc[0].id
+      nat_gateway_id = aws_nat_gateway.project_vpc[0].id
     }
   }
 
   tags = {
-    Name = "${var.project_name}-private-rt"
+    Name = "${var.project_name}-{var.env}-private-rt"
   }
 }
 
@@ -104,9 +104,9 @@ resource "aws_route_table_association" "private" {
 
 # ---------------- SECURITY GROUP ----------------
 resource "aws_security_group" "private_sg" {
-  name        = "${var.project_name}-private-sg"
+  name        = "${var.project_name}-{var.env}-private-sg"
   description = "Allow only internal VPC traffic"
-  vpc_id      = aws_vpc.nba_vpc.id
+  vpc_id      = aws_vpc.project_vpc.id
 
   ingress {
     description = "Allow all from VPC"
@@ -125,6 +125,6 @@ resource "aws_security_group" "private_sg" {
   }
 
   tags = {
-    Name = "${var.project_name}-private-sg"
+    Name = "${var.project_name}-{var.env}-private-sg"
   }
 }
