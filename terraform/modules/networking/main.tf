@@ -4,7 +4,7 @@ resource "aws_vpc" "project_vpc" {
   enable_dns_hostnames = true
 
   tags = {
-    Name = "${var.project_name}-{var.env}-vpc"
+    Name = "${var.project_name}-${var.env}-vpc"
   }
 }
 
@@ -12,7 +12,7 @@ resource "aws_internet_gateway" "project_vpc" {
   vpc_id = aws_vpc.project_vpc.id
 
   tags = {
-    Name = "${var.project_name}-{var.env}-igw"
+    Name = "${var.project_name}-${var.env}-igw"
   }
 }
 
@@ -25,7 +25,7 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "${var.project_name}-{var.env}-public-${count.index + 1}"
+    Name = "${var.project_name}-${var.env}-public-${count.index + 1}"
   }
 }
 
@@ -37,7 +37,7 @@ resource "aws_subnet" "private" {
   availability_zone = var.azs[count.index]
 
   tags = {
-    Name = "${var.project_name}-{var.env}-private-${count.index + 1}"
+    Name = "${var.project_name}-${var.env}-private-${count.index + 1}"
   }
 }
 
@@ -51,7 +51,7 @@ resource "aws_route_table" "public" {
   }
 
   tags = {
-    Name = "${var.project_name}-{var.env}-public-rt"
+    Name = "${var.project_name}-${var.env}-public-rt"
   }
 }
 
@@ -75,7 +75,7 @@ resource "aws_nat_gateway" "project_vpc" {
   depends_on = [aws_internet_gateway.project_vpc]
 
   tags = {
-    Name = "${var.project_name}-{var.env}-nat-gw"
+    Name = "${var.project_name}-${var.env}-nat-gw"
   }
 }
 
@@ -92,7 +92,7 @@ resource "aws_route_table" "private" {
   }
 
   tags = {
-    Name = "${var.project_name}-{var.env}-private-rt"
+    Name = "${var.project_name}-${var.env}-private-rt"
   }
 }
 
@@ -104,7 +104,7 @@ resource "aws_route_table_association" "private" {
 
 # ---------------- SECURITY GROUP ----------------
 resource "aws_security_group" "private_sg" {
-  name        = "${var.project_name}-{var.env}-private-sg"
+  name        = "${var.project_name}-${var.env}-private-sg"
   description = "Allow only internal VPC traffic"
   vpc_id      = aws_vpc.project_vpc.id
 
@@ -125,6 +125,6 @@ resource "aws_security_group" "private_sg" {
   }
 
   tags = {
-    Name = "${var.project_name}-{var.env}-private-sg"
+    Name = "${var.project_name}-${var.env}-private-sg"
   }
 }
