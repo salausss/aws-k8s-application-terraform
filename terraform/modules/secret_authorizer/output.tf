@@ -1,0 +1,1 @@
+output "auth_arn" { value = aws_lambda_function.auth.invoke_arn }
