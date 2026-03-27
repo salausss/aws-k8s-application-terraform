@@ -1,7 +1,57 @@
+resource "aws_iam_role" "eks_cluster_role" {
+  name = "${var.cluster_name}-cluster-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = { Service = "eks.amazonaws.com" }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+  role       = aws_iam_role.eks_cluster_role.name
+}
+
+resource "aws_iam_role" "node_group_role" {
+  name = "${var.cluster_name}-node-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = { Service = "ec2.amazonaws.com" }
+    }]
+  })
+}
+
+# Required for nodes to join the cluster
+resource "aws_iam_role_policy_attachment" "node_AmazonEKSWorkerNodePolicy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+  role       = aws_iam_role.node_group_role.name
+}
+
+# Required for IPv4 networking
+resource "aws_iam_role_policy_attachment" "node_AmazonEKS_CNI_Policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+  role       = aws_iam_role.node_group_role.name
+}
+
+# Required to pull images from ECR
+resource "aws_iam_role_policy_attachment" "node_AmazonEC2ContainerRegistryReadOnly" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+  role       = aws_iam_role.node_group_role.name
+}
+
+# Creating EKS Cluster 
+
 resource "aws_eks_cluster" "primary" {
   name    = var.cluster_name
   version = var.cluster_version
-  role_arn = var.cluster_role_arn
+  role_arn = aws_iam_role.eks_cluster_role.arn
 
   vpc_config {
     subnet_ids              = var.subnet_ids
@@ -41,154 +91,6 @@ resource "aws_iam_openid_connect_provider" "this" {
   }
 }
 
-# Existing EKS Add-ons (from your example)
-resource "aws_eks_addon" "vpc_cni" {
-  cluster_name      = aws_eks_cluster.primary.name
-  addon_name        = "vpc-cni"
-  resolve_conflicts_on_create = "OVERWRITE"
-
-  depends_on = [aws_eks_cluster.primary]  
-}
-
-resource "aws_eks_addon" "coredns" {
-  cluster_name      = aws_eks_cluster.primary.name
-  addon_name        = "coredns"
-  resolve_conflicts_on_create = "OVERWRITE"
-
-  depends_on = [
-    aws_eks_node_group.application_node,
-  ]
-}
-
-resource "aws_eks_addon" "kube_proxy" {
-  cluster_name      = aws_eks_cluster.primary.name
-  addon_name        = "kube-proxy"
-  resolve_conflicts_on_create = "OVERWRITE"
-
-  depends_on = [
-    aws_eks_node_group.application_node,
-  ]
-}
-
-# ##############################
-# # NEW: EBS CSI Driver IRSA Configuration
-# ##############################
-
-# 1. Define the Trust Policy for EBS CSI Driver
-data "aws_iam_policy_document" "ebs_csi_trust_policy" {
-  statement {
-    effect = "Allow"
-    principals {
-      type        = "Federated"
-      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${replace(aws_eks_cluster.primary.identity[0].oidc[0].issuer, "https://", "")}"]
-    }
-    actions = ["sts:AssumeRoleWithWebIdentity"]
-    condition {
-      test     = "StringEquals"
-      variable = "${replace(aws_eks_cluster.primary.identity[0].oidc[0].issuer, "https://", "")}:sub"
-      values   = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
-    }
-    condition {
-      test     = "StringEquals"
-      variable = "${replace(aws_eks_cluster.primary.identity[0].oidc[0].issuer, "https://", "")}:aud"
-      values   = ["sts.amazonaws.com"]
-    }
-  }
-}
-
-# 2. Create the IAM Role for EBS CSI Driver with the Trust Policy
-resource "aws_iam_role" "ebs_csi_driver_role" {
-  name               = "${var.cluster_name}-ebs-csi-driver-role" # Use a variable passed into the module
-  assume_role_policy = data.aws_iam_policy_document.ebs_csi_trust_policy.json
-
-  tags = {
-    "eks.amazonaws.com/cluster-name" = var.cluster_name # Use a variable passed into the module
-  }
-}
-
-# 3. Attach the Permissions Policy (AWS Managed Policy) to the EBS CSI Role
-resource "aws_iam_role_policy_attachment" "ebs_csi_driver_policy_attach" {
-  role       = aws_iam_role.ebs_csi_driver_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
-}
-
-# 4. REMOVE THE KUBERNETES SERVICE ACCOUNT RESOURCE FOR EBS CSI DRIVER
-#    The aws_eks_addon resource will create this.
-
-# 5. Configure the EKS Addon for EBS CSI Driver to use this Role
-resource "aws_eks_addon" "ebs_csi_driver" {
-  cluster_name             = aws_eks_cluster.primary.name
-  addon_name               = "aws-ebs-csi-driver"
-  # addon_version          = "v1.48.0-eksbuild.1" # Specify if you need a specific version
-  resolve_conflicts_on_create = "OVERWRITE"
-  service_account_role_arn = aws_iam_role.ebs_csi_driver_role.arn # Link the role here
-
-  depends_on = [
-    aws_iam_role_policy_attachment.ebs_csi_driver_policy_attach,
-    aws_eks_node_group.application_node,
-    aws_eks_node_group.database_node,
-  ]
-}
-
-# ##############################
-# # NEW: EFS CSI Driver IRSA Configuration (Similar to EBS, needs its own role)
-# ##############################
-
-# 1. Define the Trust Policy for EFS CSI Driver
-data "aws_iam_policy_document" "efs_csi_trust_policy" {
-  statement {
-    effect = "Allow"
-    principals {
-      type        = "Federated"
-      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${replace(aws_eks_cluster.primary.identity[0].oidc[0].issuer, "https://", "")}"]
-    }
-    actions = ["sts:AssumeRoleWithWebIdentity"]
-    condition {
-      test     = "StringEquals"
-      variable = "${replace(aws_eks_cluster.primary.identity[0].oidc[0].issuer, "https://", "")}:sub"
-      values   = ["system:serviceaccount:kube-system:efs-csi-controller-sa"] # EFS SA name
-    }
-    condition {
-      test     = "StringEquals"
-      variable = "${replace(aws_eks_cluster.primary.identity[0].oidc[0].issuer, "https://", "")}:aud"
-      values   = ["sts.amazonaws.com"]
-    }
-  }
-}
-
-# 2. Create the IAM Role for EFS CSI Driver with the Trust Policy
-resource "aws_iam_role" "efs_csi_driver_role" {
-  name               = "${var.cluster_name}-efs-csi-driver-role" # Use a variable passed into the module
-  assume_role_policy = data.aws_iam_policy_document.efs_csi_trust_policy.json
-
-  tags = {
-    "eks.amazonaws.com/cluster-name" = var.cluster_name # Use a variable passed into the module
-  }
-}
-
-# 3. Attach the Permissions Policy (AWS Managed Policy) to the EFS CSI Role
-resource "aws_iam_role_policy_attachment" "efs_csi_driver_policy_attach" {
-  role       = aws_iam_role.efs_csi_driver_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEFSCSIDriverPolicy" # EFS permissions policy
-}
-
-# 4. REMOVE THE KUBERNETES SERVICE ACCOUNT RESOURCE FOR EFS CSI DRIVER
-#    The aws_eks_addon resource will create this.
-
-# 5. Configure the EKS Addon for EFS CSI Driver to use this Role
-resource "aws_eks_addon" "efs_csi_driver" {
-  cluster_name             = aws_eks_cluster.primary.name # CHANGE HERE
-  addon_name               = "aws-efs-csi-driver"
-  # addon_version          = "v1.x.x-eksbuild.x" # Specify if you need a specific version
-  resolve_conflicts_on_create = "OVERWRITE"
-  service_account_role_arn = aws_iam_role.efs_csi_driver_role.arn # Link the role here
-
-  depends_on = [
-    aws_iam_role_policy_attachment.efs_csi_driver_policy_attach,
-    aws_eks_node_group.application_node,
-    aws_eks_node_group.database_node,
-  ]
-}
 
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
@@ -198,7 +100,7 @@ data "aws_region" "current" {}
 resource "aws_eks_node_group" "application_node" {
   cluster_name    = aws_eks_cluster.primary.name
   node_group_name = var.application_node_name
-  node_role_arn   = var.node_role_arn
+  node_role_arn   = aws_iam_role.node_group_role.arn
   subnet_ids      = var.subnet_ids
   instance_types  = [var.application_pool_machine_type]
   disk_size       = var.application_pool_disk_size_gb
@@ -230,7 +132,7 @@ resource "aws_eks_node_group" "application_node" {
 resource "aws_eks_node_group" "database_node" {
   cluster_name    = aws_eks_cluster.primary.name
   node_group_name = var.database_node_name
-  node_role_arn   = var.node_role_arn
+  node_role_arn   = aws_iam_role.node_group_role.arn
   subnet_ids      = var.subnet_ids
   instance_types  = [var.database_pool_machine_type]
   disk_size       = var.database_pool_disk_size_gb
