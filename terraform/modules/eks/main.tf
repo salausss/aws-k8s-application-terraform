@@ -102,6 +102,7 @@ resource "aws_eks_node_group" "application_node" {
   node_group_name = var.application_node_name
   node_role_arn   = aws_iam_role.node_group_role.arn
   subnet_ids      = var.subnet_ids
+  ami_type       = "AL2023_x86_64_STANDARD"
   instance_types  = [var.application_pool_machine_type]
   disk_size       = var.application_pool_disk_size_gb
 
@@ -134,6 +135,7 @@ resource "aws_eks_node_group" "database_node" {
   node_group_name = var.database_node_name
   node_role_arn   = aws_iam_role.node_group_role.arn
   subnet_ids      = var.subnet_ids
+  ami_type       = "AL2023_x86_64_STANDARD"
   instance_types  = [var.database_pool_machine_type]
   disk_size       = var.database_pool_disk_size_gb
 

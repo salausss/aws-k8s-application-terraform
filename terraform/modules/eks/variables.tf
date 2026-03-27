@@ -86,7 +86,7 @@ variable "cluster_pool_max_unavailable" {
 variable "application_pool_machine_type" {
   description = "Instance type for application nodes."
   type        = string
-  default     = "AL2023_x86_64_STANDARD"
+  default     = "t2.medium"
 }
 
 variable "application_pool_disk_size_gb" {
@@ -123,7 +123,7 @@ variable "application_pool_max_unavailable" {
 variable "database_pool_machine_type" {
   description = "Instance type for database nodes."
   type        = string
-  default     = "AL2023_x86_64_STANDARD"
+  default     = "t2.medium"
 }
 
 variable "database_pool_disk_size_gb" {
