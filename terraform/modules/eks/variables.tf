@@ -89,6 +89,10 @@ variable "application_pool_machine_type" {
   default     = "t2.medium"
 }
 
+variable "ami_type" {
+  default     = "AL2023_x86_64_STANDARD"
+}
+
 variable "application_pool_disk_size_gb" {
   description = "Disk size for application nodes."
   type        = number
