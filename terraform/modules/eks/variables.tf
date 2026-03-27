@@ -90,6 +90,7 @@ variable "application_pool_machine_type" {
 }
 
 variable "ami_type" {
+  description = "type of ami that supports latest kubernetes version"
   default     = "AL2023_x86_64_STANDARD"
 }
 
