@@ -12,9 +12,9 @@ module "vpc" {
 module "kms" {
   source  = "../../modules/kms"
   name = var.project_name
-  alias = kms
+  alias = "kms_alias"
   environment = var.environment
-  description = kms_description
+  description = "kms_description"
 }
 
 module "eks" {
@@ -23,8 +23,8 @@ module "eks" {
   cluster_version = 1.35
   subnet_ids    = module.vpc.private_subnet_ids
   kms_key_arn   = module.kms.key_arn
-  cluster_node_name   = cluster_node_pip
-  application_node_name   = application
-  database_node_name      = dalabase
+  cluster_node_name   = "cluster_node_pip"
+  application_node_name   = "application"
+  database_node_name      = "database"
 }
 
