@@ -65,6 +65,14 @@ resource "aws_eks_cluster" "primary" {
     service_ipv4_cidr = var.service_ipv4_cidr_block
     #service_ipv4_cidr = data.aws_vpc.existing_vpc.cidr_block
   }
+  
+  access_config {
+    # This enables the API while keeping your current ConfigMap working
+    authentication_mode = "API_AND_CONFIG_MAP" 
+    
+    # This ensures the IAM user/role running Terraform doesn't lose admin access
+    bootstrap_cluster_creator_admin_permissions = true 
+  }
 
   encryption_config {
     resources = ["secrets"]
