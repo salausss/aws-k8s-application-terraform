@@ -28,3 +28,12 @@ module "eks" {
   database_node_name      = "database"
 }
 
+module "vpc_peering" {
+  source = "../../modules/vpc_peering"
+
+  eks_vpc_id          = module.vpc.vpc_id
+  eks_vpc_cidr        = module.vpc.vpc_cidr
+  eks_route_table_ids = module.vpc.private_route_table_ids
+
+  manual_ec2_vpc_id   = "vpc-0991d2e980c73f251" 
+}
