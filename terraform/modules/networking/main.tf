@@ -39,9 +39,7 @@ resource "aws_subnet" "private" {
   tags = {
     Name = "${var.project_name}-${var.env}-private-${count.index + 1}"
   }
-  lifecycle {
-    ignore_changes = [route]
-  }
+  
 }
 
 # ---------------- ROUTE TABLES ----------------
@@ -96,6 +94,9 @@ resource "aws_route_table" "private" {
 
   tags = {
     Name = "${var.project_name}-${var.env}-private-rt"
+  }
+  lifecycle {
+    ignore_changes = [route]
   }
 }
 
