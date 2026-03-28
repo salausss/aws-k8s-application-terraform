@@ -56,8 +56,8 @@ resource "aws_eks_cluster" "primary" {
   vpc_config {
     subnet_ids              = var.subnet_ids
     endpoint_private_access = true
-    endpoint_public_access  = true
-    public_access_cidrs     = ["13.232.86.197/32"]
+    endpoint_public_access  = false
+    #public_access_cidrs     = ["13.232.86.197/32"]
   }
 
   # CORRECTED: service_ipv4_cidr is now nested inside this block
