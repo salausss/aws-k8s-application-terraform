@@ -195,7 +195,7 @@ resource "time_sleep" "wait_for_eks" {
 #  depends_on = [time_sleep.wait_for_eks]
 #}
 
-resource "kubernetes_config_map_v1" "aws_auth" {
+resource "kubernetes_config_map_v1_data" "aws_auth" {
   metadata {
     name      = "aws-auth"
     namespace = "kube-system"
@@ -220,5 +220,6 @@ resource "kubernetes_config_map_v1" "aws_auth" {
       }
     ])
   }
-  depends_on = [aws_eks_cluster.primary]
+  depends_on = [time_sleep.wait_for_eks]
+  force   =   true
 }
