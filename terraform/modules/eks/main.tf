@@ -56,8 +56,8 @@ resource "aws_eks_cluster" "primary" {
   vpc_config {
     subnet_ids              = var.subnet_ids
     endpoint_private_access = true
-    endpoint_public_access  = false
-    #public_access_cidrs     = ["13.232.86.197/32"]
+    endpoint_public_access  = true
+    public_access_cidrs     = ["43.204.28.23/32"]
   }
 
   # CORRECTED: service_ipv4_cidr is now nested inside this block
@@ -68,7 +68,7 @@ resource "aws_eks_cluster" "primary" {
   
   access_config {
     # This enables the API while keeping your current ConfigMap working
-    authentication_mode = "API_AND_CONFIG_MAP" 
+    authentication_mode = "CONFIG_MAP" 
     
     # This ensures the IAM user/role running Terraform doesn't lose admin access
     bootstrap_cluster_creator_admin_permissions = true 
@@ -176,4 +176,49 @@ resource "aws_security_group_rule" "allow_manual_vpc_443" {
   cidr_blocks       = ["172.31.0.0/16"] 
   security_group_id = aws_eks_cluster.primary.vpc_config[0].cluster_security_group_id
   description       = "Allow HTTPS from EC2 to EKS"
+}
+
+#Config to setup kubernetes connection
+resource "time_sleep" "wait_for_eks" {
+  depends_on = [aws_eks_cluster.primary]
+
+  create_duration = "60s"
+}
+
+#data "aws_eks_cluster" "primary" {
+#  name = aws_eks_cluster.primary.name
+#  depends_on = [time_sleep.wait_for_eks]
+#}
+
+#data "aws_eks_cluster_auth" "primary" {
+#  name = aws_eks_cluster.primary.name
+#  depends_on = [time_sleep.wait_for_eks]
+#}
+
+resource "kubernetes_config_map_v2" "aws_auth" {
+  metadata {
+    name      = "aws-auth"
+    namespace = "kube-system"
+  }
+
+  data = {
+    # 1. Allow the Node Groups to join the cluster
+    mapRoles = yamlencode([
+      {
+        rolearn  = aws_iam_role.node_group_role.arn
+        username = "system:node:{{EC2PrivateDNSName}}"
+        groups   = ["system:bootstrappers", "system:nodes"]
+      }
+    ])
+
+    # 2. Grant your IAM user Administrator access
+    mapUsers = yamlencode([
+      {
+        userarn  = "arn:aws:iam::929861724743:user/Salah_Abbasi"
+        username = "Salah_Abbasi"
+        groups   = ["system:masters"]
+      }
+    ])
+  }
+  depends_on = [aws_eks_cluster.primary]
 }

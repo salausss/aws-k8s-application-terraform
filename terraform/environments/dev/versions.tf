@@ -16,15 +16,3 @@ terraform {
     }
   }
 }
-
-provider "aws" {
-  region = var.aws_region
-  default_tags {
-    tags = {
-        Environment = "dev"
-        Project     = "PIP-project"
-        Owner       = "platform-team"
-        ManagedBy   = "terraform"
-    }
-  } 
-}
