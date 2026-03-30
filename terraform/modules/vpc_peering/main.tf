@@ -22,16 +22,21 @@ resource "aws_vpc_peering_connection" "this" {
 
 # 4. Add Routes to EKS Route Tables (pointing to manual VPC)
 resource "aws_route" "to_manual" {
-  for_each                  = toset(var.eks_route_table_ids)
-  route_table_id            = each.value
+  # Switch to count. length() is known even if IDs aren't.
+  count                     = length(var.eks_route_table_ids)
+  
+  route_table_id            = var.eks_route_table_ids[count.index]
   destination_cidr_block    = data.aws_vpc.manual.cidr_block
   vpc_peering_connection_id = aws_vpc_peering_connection.this.id
 }
 
 # 5. Add Routes to Manual Route Tables (pointing to EKS VPC)
 resource "aws_route" "to_eks" {
-  for_each                  = toset(data.aws_route_tables.manual_rts.ids)
-  route_table_id            = each.value
+  # Since the manual VPC already exists, data source IDs should be fine,
+  # but using count here is safer for a clean plan.
+  count                     = length(data.aws_route_tables.manual_rts.ids)
+  
+  route_table_id            = data.aws_route_tables.manual_rts.ids[count.index]
   destination_cidr_block    = var.eks_vpc_cidr
   vpc_peering_connection_id = aws_vpc_peering_connection.this.id
 }
