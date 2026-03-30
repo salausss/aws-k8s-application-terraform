@@ -40,3 +40,15 @@ resource "aws_route" "to_eks" {
   destination_cidr_block    = var.eks_vpc_cidr
   vpc_peering_connection_id = aws_vpc_peering_connection.this.id
 }
+
+# From ec2 jump server to eks 
+resource "aws_security_group_rule" "allow_manual_vpc_443" {
+  type              = "ingress"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  cidr_blocks       = ["172.31.0.0/16"] # Your manual EC2 VPC CIDR
+  security_group_id = aws_eks_cluster.primary.vpc_config[0].cluster_security_group_id
+  description       = "Allow HTTPS from manual EC2 VPC over Peering"
+}
+
