@@ -34,6 +34,6 @@ module "vpc_peering" {
   eks_vpc_id          = module.vpc.vpc_id
   eks_vpc_cidr        = module.vpc.vpc_cidr
   eks_route_table_ids = module.vpc.private_route_table_ids
-
+  eks_security_group_id = module.eks.cluster_security_group_id
   manual_ec2_vpc_id   = "vpc-0991d2e980c73f251" 
 }

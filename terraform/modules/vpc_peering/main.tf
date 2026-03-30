@@ -48,7 +48,7 @@ resource "aws_security_group_rule" "allow_manual_vpc_443" {
   to_port           = 443
   protocol          = "tcp"
   cidr_blocks       = ["172.31.0.0/16"] # Your manual EC2 VPC CIDR
-  security_group_id = aws_eks_cluster.primary.vpc_config[0].cluster_security_group_id
+  security_group_id = var.eks_security_group_id
   description       = "Allow HTTPS from manual EC2 VPC over Peering"
 }
 

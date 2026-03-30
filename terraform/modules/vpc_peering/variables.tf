@@ -17,3 +17,7 @@ variable "manual_ec2_vpc_id" {
   description = "ID of the manually created EC2 VPC"
   type        = string
 }
+
+variable "eks_security_group_id" {
+  type = string
+}
