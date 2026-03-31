@@ -4,7 +4,7 @@
 
 output "oidc_provider_arn" {
   description = "ARN of the IAM OIDC provider created for this cluster"
-  value       = aws_iam_openid_connect_provider.eks.arn
+  value       = data.aws_iam_openid_connect_provider.eks.arn
 }
 
 output "oidc_issuer" {
