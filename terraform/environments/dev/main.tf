@@ -29,3 +29,9 @@ module "eks" {
   user_arn                = var.user_arn
   username                = var.username
 }
+
+module "eks-addons" {
+  source = "../../modules/eks-addons"
+  region = var.aws_region
+  cluster_name = var.project_name 
+}

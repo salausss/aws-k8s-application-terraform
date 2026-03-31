@@ -1,32 +1,23 @@
-# Existing EKS Add-ons (from your example)
+data 
+
+# Existing EKS Add-ons
 resource "aws_eks_addon" "vpc_cni" {
-  cluster_name      = aws_eks_cluster.primary.name
+  cluster_name      = var.cluster_name
   addon_name        = "vpc-cni"
   resolve_conflicts_on_create = "OVERWRITE"
-
-  depends_on = [aws_eks_cluster.primary]  
 }
 
 resource "aws_eks_addon" "coredns" {
-  cluster_name      = aws_eks_cluster.primary.name
+  cluster_name      = var.cluster_name
   addon_name        = "coredns"
   resolve_conflicts_on_create = "OVERWRITE"
-
-  depends_on = [
-    aws_eks_node_group.application_node,
-  ]
 }
 
 resource "aws_eks_addon" "kube_proxy" {
-  cluster_name      = aws_eks_cluster.primary.name
+  cluster_name      = var.cluster_name
   addon_name        = "kube-proxy"
   resolve_conflicts_on_create = "OVERWRITE"
-
-  depends_on = [
-    aws_eks_node_group.application_node,
-  ]
 }
-
 
 # ##############################
 # # NEW: EBS CSI Driver IRSA Configuration
@@ -75,17 +66,11 @@ resource "aws_iam_role_policy_attachment" "ebs_csi_driver_policy_attach" {
 
 # 5. Configure the EKS Addon for EBS CSI Driver to use this Role
 resource "aws_eks_addon" "ebs_csi_driver" {
-  cluster_name             = aws_eks_cluster.primary.name
+  cluster_name             = var.cluster_name
   addon_name               = "aws-ebs-csi-driver"
   # addon_version          = "v1.48.0-eksbuild.1" # Specify if you need a specific version
   resolve_conflicts_on_create = "OVERWRITE"
   service_account_role_arn = aws_iam_role.ebs_csi_driver_role.arn # Link the role here
-
-  depends_on = [
-    aws_iam_role_policy_attachment.ebs_csi_driver_policy_attach,
-    aws_eks_node_group.application_node,
-    aws_eks_node_group.database_node,
-  ]
 }
 
 # ##############################
