@@ -197,7 +197,7 @@ resource "aws_iam_role" "lbc" {
 resource "aws_iam_policy" "lbc" {
   name        = "${var.cluster_name}-lbc-policy"
   description = "IAM policy for AWS Load Balancer Controller"
-  policy      = file("${path.module}/policies/lbc-iam-policy.json")
+  policy      = file("${path.module}/../src/policies/lbc-iam-policy.json")
 }
 
 resource "aws_iam_role_policy_attachment" "lbc" {
