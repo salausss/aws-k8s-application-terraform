@@ -109,7 +109,7 @@ resource "aws_eks_node_group" "system_node" {
   node_group_name = "system-pool"
   node_role_arn   = aws_iam_role.node_group_role.arn
   subnet_ids      = var.subnet_ids
-  instance_types  = var.cluster_pool_machine_type
+  instance_types  = [var.cluster_pool_machine_type]
 
   scaling_config {
     desired_size = 1
