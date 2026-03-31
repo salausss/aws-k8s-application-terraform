@@ -165,3 +165,12 @@ variable "database_pool_max_unavailable" {
   type        = number
   default     = 1
 }
+
+# AWS user Authentication 
+variable "user_arn" {
+  type = string
+}
+
+variable "username" {
+  type = string
+}

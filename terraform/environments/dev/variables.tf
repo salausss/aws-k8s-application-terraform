@@ -28,3 +28,12 @@ variable "public_subnet_cidrs" {
 variable "private_subnet_cidrs" {
   type = list(string)
 }
+
+# AWS user Authentication 
+variable "user_arn" {
+  type = string
+}
+
+variable "username" {
+  type = string
+}

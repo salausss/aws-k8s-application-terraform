@@ -7,6 +7,10 @@ project_name = "pip"
 
 # VPC
 vpc_cidr            = "10.0.0.0/16"
-azs                 = ["us-east-1a", "us-east-1b"]
+azs                 = ["ap-south-1a", "ap-south-1b"]
 public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24"]
 private_subnet_cidrs = ["10.0.11.0/24", "10.0.12.0/24"]
+
+# EKS
+user_arn = "arn:aws:iam::929861724743:user/Salah_Abbasi"
+username = "Salah_Abbasi"

@@ -68,7 +68,7 @@ resource "aws_eks_cluster" "primary" {
   
   access_config {
     # This enables the API while keeping your current ConfigMap working
-    authentication_mode = "API_AND_CONFIG_MAP" 
+    authentication_mode = "CONFIG_MAP" 
   
     # This ensures the IAM user/role running Terraform doesn't lose admin access
     bootstrap_cluster_creator_admin_permissions = true 
@@ -181,7 +181,6 @@ resource "aws_security_group_rule" "allow_manual_vpc_443" {
 #Config to setup kubernetes connection
 resource "time_sleep" "wait_for_eks" {
   depends_on = [aws_eks_cluster.primary]
-
   create_duration = "60s"
 }
 
@@ -214,8 +213,8 @@ resource "kubernetes_config_map_v1_data" "aws_auth" {
     # 2. Grant your IAM user Administrator access
     mapUsers = yamlencode([
       {
-        userarn  = "arn:aws:iam::929861724743:user/Salah_Abbasi"
-        username = "Salah_Abbasi"
+        userarn  = var.user_arn 
+        username = var.username 
         groups   = ["system:masters"]
       }
     ])
