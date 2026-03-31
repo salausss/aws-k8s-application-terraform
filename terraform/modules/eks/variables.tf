@@ -26,6 +26,11 @@ variable "service_ipv4_cidr_block" {
   default     = "172.20.0.0/16"
 }
 
+variable "public_access_cidr" {
+  type    =   string
+  default = ["65.0.94.167/36"]
+}
+
 # --- Node Group Names ---
 
 variable "cluster_node_name" {

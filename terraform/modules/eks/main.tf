@@ -57,7 +57,7 @@ resource "aws_eks_cluster" "primary" {
     subnet_ids              = var.subnet_ids
     endpoint_private_access = true
     endpoint_public_access  = true
-    public_access_cidrs     = ["43.204.28.23/32"]
+    public_access_cidrs     = var.public_access_cidr
   }
 
   # CORRECTED: service_ipv4_cidr is now nested inside this block
@@ -69,7 +69,7 @@ resource "aws_eks_cluster" "primary" {
   access_config {
     # This enables the API while keeping your current ConfigMap working
     authentication_mode = "API_AND_CONFIG_MAP" 
-    
+  
     # This ensures the IAM user/role running Terraform doesn't lose admin access
     bootstrap_cluster_creator_admin_permissions = true 
   }
