@@ -103,6 +103,28 @@ resource "aws_iam_openid_connect_provider" "this" {
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
+# System Node Group (For CoreDNS, LBC, etc.)
+resource "aws_eks_node_group" "system_node" {
+  cluster_name    = aws_eks_cluster.primary.name
+  node_group_name = "system-pool"
+  node_role_arn   = aws_iam_role.node_group_role.arn
+  subnet_ids      = var.subnet_ids
+  instance_types  = cluster_pool_machine_type
+
+  scaling_config {
+    desired_size = 1
+    min_size     = 1
+    max_size     = 2
+  }
+
+  # Labels are good for organization, but we leave Taints empty
+  labels = {
+    "node-type" = "system"
+  }
+
+  ami_type   = var.ami_type
+  depends_on = [aws_eks_cluster.primary]
+}
 
 # Application Node Group
 resource "aws_eks_node_group" "application_node" {

@@ -50,11 +50,16 @@ variable "database_node_name" {
 
 # --- Node Group Configurations ---
 
+variable "ami_type" {
+  description = "type of ami that supports latest kubernetes version"
+  default     = "AL2023_x86_64_STANDARD"
+}
+
 # --- cluster Pool ---
 variable "cluster_pool_machine_type" {
   description = "Instance type for cluster nodes."
   type        = string
-  default     = "AL2023_x86_64_STANDARD"
+  default     = "t2.medium"
 }
 
 variable "cluster_pool_disk_size_gb" {
@@ -92,11 +97,6 @@ variable "application_pool_machine_type" {
   description = "Instance type for application nodes."
   type        = string
   default     = "t2.medium"
-}
-
-variable "ami_type" {
-  description = "type of ami that supports latest kubernetes version"
-  default     = "AL2023_x86_64_STANDARD"
 }
 
 variable "application_pool_disk_size_gb" {
