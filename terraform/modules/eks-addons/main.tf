@@ -8,19 +8,20 @@ data "aws_eks_cluster" "primary" {
   name = var.cluster_name
 }
 
-data "tls_certificate" "eks_oidc" {
-  url = data.aws_eks_cluster.primary.identity[0].oidc[0].issuer
-}
-
 # ─────────────────────────────────────────────────────────────
 # OIDC PROVIDER
 # ─────────────────────────────────────────────────────────────
 
-resource "aws_iam_openid_connect_provider" "eks" {
-  url             = data.aws_eks_cluster.primary.identity[0].oidc[0].issuer
-  client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = [data.tls_certificate.eks_oidc.certificates[0].sha1_fingerprint]
+#resource "aws_iam_openid_connect_provider" "eks" {
+#  url             = data.aws_eks_cluster.primary.identity[0].oidc[0].issuer
+#  client_id_list  = ["sts.amazonaws.com"]
+#  thumbprint_list = [data.tls_certificate.eks_oidc.certificates[0].sha1_fingerprint]
+#}
+
+data "aws_iam_openid_connect_provider" "eks" {
+  url = data.aws_eks_cluster.primary.identity[0].oidc[0].issuer
 }
+
 
 # ─────────────────────────────────────────────────────────────
 # LOCALS
@@ -28,9 +29,8 @@ resource "aws_iam_openid_connect_provider" "eks" {
 
 locals {
   oidc_issuer       = replace(data.aws_eks_cluster.primary.identity[0].oidc[0].issuer, "https://", "")
-  oidc_provider_arn = aws_iam_openid_connect_provider.eks.arn
+  oidc_provider_arn = data.aws_iam_openid_connect_provider.eks.arn
 }
-
 
 # ─────────────────────────────────────────────────────────────
 # EKS MANAGED ADDONS
