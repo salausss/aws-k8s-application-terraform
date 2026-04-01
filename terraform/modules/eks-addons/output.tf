@@ -48,26 +48,6 @@ output "efs_csi_role_arn" {
   value = var.enable_efs ? aws_iam_role.efs_csi[0].arn : null
 }
 
-output "lbc_role_arn" {
-  value = aws_iam_role.lbc.arn
-}
-
 output "cluster_autoscaler_role_arn" {
   value = var.enable_cluster_autoscaler ? aws_iam_role.cas[0].arn : null
 }
-
-# ─────────────────────────────────────────────────────────────
-# HELM RELEASE OUTPUTS
-# ─────────────────────────────────────────────────────────────
-
-#output "lbc_helm_status" {
-#  value = helm_release.aws_load_balancer_controller.status
-#}
-
-#output "metrics_server_helm_status" {
-#  value = helm_release.metrics_server.status
-#}
-
-#output "cluster_autoscaler_helm_status" {
-#  value = var.enable_cluster_autoscaler ? helm_release.cluster_autoscaler[0].status : null
-#}

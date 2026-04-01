@@ -21,14 +21,13 @@ provider "kubernetes" {
 }
 
 provider "helm" {
-  kubernetes {
+  kubernetes = {              # argument syntax — required on 3.x
     host                   = module.eks.cluster_endpoint
     cluster_ca_certificate = module.eks.cluster_ca_certificate
-
-    exec {
+    exec = {
       api_version = "client.authentication.k8s.io/v1beta1"
       command     = "aws"
-      args        = ["eks", "get-token", "--cluster-name", var.cluster_name]
+      args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
     }
   }
 }
