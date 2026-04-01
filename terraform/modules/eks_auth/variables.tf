@@ -24,3 +24,7 @@ variable "developer_namespaces" {
   type        = list(string)
   default     = ["app", "db"]
 }
+
+variable "node_group_role" {
+  type = string
+}

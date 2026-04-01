@@ -43,4 +43,5 @@ module "eks_rbac" {
   admin_group_name     = "eks:admin-group"
   developer_group_name = "eks:developer-group"
   developer_namespaces = ["app", "db"]
+  node_group_role      = module.eks.node_group_role
 }
