@@ -115,7 +115,7 @@ resource "kubernetes_cluster_role_binding" "admin" {
 # -------------------------------------------------------
 # Creating Namespaces
 # -------------------------------------------------------
-resource "kubernetes_namespace" "admin+developer" {
+resource "kubernetes_namespace" "admin_developer" {
   for_each = toset(var.developer_namespaces)
 
   metadata {
