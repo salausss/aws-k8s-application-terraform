@@ -69,8 +69,26 @@ resource "kubernetes_config_map_v1_data" "aws_auth" {
     groups   = [var.developer_group_name]
   }
     ])
+
+    mapUsers = yamlencode(concat(
+      [
+        for arn in var.admin_user_arns : {
+          userarn  = arn
+          username = split("/", arn)[1]
+          groups   = [var.admin_group_name]
+        }
+      ],
+      [
+        for arn in var.developer_user_arns : {
+          userarn  = arn
+          username = split("/", arn)[1]
+          groups   = [var.developer_group_name]
+        }
+      ]
+    ))
   }
-}
+  }
+
 
 # -------------------------------------------------------
 # Admin ClusterRole + ClusterRoleBinding
@@ -242,3 +260,4 @@ resource "kubernetes_role_binding" "developer" {
     api_group = "rbac.authorization.k8s.io"
   }
 }
+

@@ -28,3 +28,15 @@ variable "developer_namespaces" {
 variable "node_group_role" {
   type = string
 }
+
+variable "admin_user_arns" {
+  description = "List of IAM user ARNs to be added to the admin group"
+  type        = list(string)
+  default     = []
+}
+
+variable "developer_user_arns" {
+  description = "List of IAM user ARNs to be added to the developer group"
+  type        = list(string)
+  default     = []
+}

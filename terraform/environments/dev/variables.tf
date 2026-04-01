@@ -30,10 +30,14 @@ variable "private_subnet_cidrs" {
 }
 
 # AWS user Authentication 
-variable "user_arn" {
-  type = string
+variable "admin_user_arns" {
+  description = "List of IAM user ARNs to be added to the admin group"
+  type        = list(string)
+  default     = []
 }
 
-variable "username" {
-  type = string
+variable "developer_user_arns" {
+  description = "List of IAM user ARNs to be added to the developer group"
+  type        = list(string)
+  default     = []
 }

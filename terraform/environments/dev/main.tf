@@ -26,8 +26,6 @@ module "eks" {
   cluster_node_name       = "cluster_node_pip"
   application_node_name   = "application"
   database_node_name      = "database"
-  user_arn                = var.user_arn
-  username                = var.username
 }
 
 module "eks-addons" {
@@ -44,4 +42,6 @@ module "eks_rbac" {
   developer_group_name = "eks:developer-group"
   developer_namespaces = ["app", "db"]
   node_group_role      = module.eks.node_group_role
+  admin_user_arns      = var.admin_user_arns
+  developer_user_arns  = var.developer_user_arns
 }
