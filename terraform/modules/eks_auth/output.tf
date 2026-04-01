@@ -1,0 +1,11 @@
+output "admin_cluster_role_name" {
+  value = kubernetes_cluster_role.admin.metadata[0].name
+}
+
+output "developer_cluster_role_name" {
+  value = kubernetes_role.developer.id
+}
+
+output "developer_namespace_roles" {
+  value = [for ns in var.developer_namespaces : ns]
+}

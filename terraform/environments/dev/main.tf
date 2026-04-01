@@ -35,3 +35,13 @@ module "eks-addons" {
   region = var.aws_region
   cluster_name = var.project_name 
 }
+
+module "eks_rbac" {
+  source = "../../modules/eks-auth"
+
+  cluster_name         = module.eks.cluster_name
+  env                  = var.environment
+  admin_group_name     = "eks:admin-group"
+  developer_group_name = "eks:developer-group"
+  developer_namespaces = ["app", "db"]
+}
