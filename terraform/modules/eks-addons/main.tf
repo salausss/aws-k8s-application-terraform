@@ -159,53 +159,6 @@ resource "aws_iam_role_policy_attachment" "efs_csi" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEFSCSIDriverPolicy"
 }
 
-
-# ─────────────────────────────────────────────────────────────
-# IRSA — AWS LOAD BALANCER CONTROLLER
-# ─────────────────────────────────────────────────────────────
-
-data "aws_iam_policy_document" "lbc_trust" {
-  statement {
-    effect  = "Allow"
-    actions = ["sts:AssumeRoleWithWebIdentity"]
-    principals {
-      type        = "Federated"
-      identifiers = [local.oidc_provider_arn]
-    }
-    condition {
-      test     = "StringEquals"
-      variable = "${local.oidc_issuer}:sub"
-      values   = ["system:serviceaccount:kube-system:aws-load-balancer-controller"]
-    }
-    condition {
-      test     = "StringEquals"
-      variable = "${local.oidc_issuer}:aud"
-      values   = ["sts.amazonaws.com"]
-    }
-  }
-}
-
-resource "aws_iam_role" "lbc" {
-  name               = "${var.cluster_name}-lbc-role"
-  assume_role_policy = data.aws_iam_policy_document.lbc_trust.json
-}
-
-# Download once and commit to your repo:
-#   mkdir -p policies
-#   curl -o policies/lbc-iam-policy.json \
-#     https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json
-resource "aws_iam_policy" "lbc" {
-  name        = "${var.cluster_name}-lbc-policy"
-  description = "IAM policy for AWS Load Balancer Controller"
-  policy      = file("${path.root}/../../src/policies/lbc-iam-policy.json")
-}
-
-resource "aws_iam_role_policy_attachment" "lbc" {
-  role       = aws_iam_role.lbc.name
-  policy_arn = aws_iam_policy.lbc.arn
-}
-
-
 # ─────────────────────────────────────────────────────────────
 # IRSA — CLUSTER AUTOSCALER (conditional)
 # ─────────────────────────────────────────────────────────────

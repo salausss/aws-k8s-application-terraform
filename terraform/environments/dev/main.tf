@@ -45,3 +45,10 @@ module "eks_rbac" {
   admin_user_arns      = var.admin_user_arns
   developer_user_arns  = var.developer_user_arns
 }
+
+module "alb_controller" {
+  source = "../../modules/eks_controllers"
+  cluster_name     = module.eks.cluster_name
+  aws_region       = var.aws_region
+  vpc_id           = module.vpc.vpc_id
+}

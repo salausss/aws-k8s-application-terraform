@@ -230,7 +230,7 @@ resource "kubernetes_role" "developer" {
   rule {
     api_groups = ["batch"]
     resources  = ["jobs", "cronjobs"]
-    verbs      = ["get", "list", "watch"]
+    verbs      = ["get", "list", "watch", "create", "update"]
   }
 
   rule {
