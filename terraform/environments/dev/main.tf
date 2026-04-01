@@ -37,8 +37,7 @@ module "eks-addons" {
 }
 
 module "eks_rbac" {
-  source = "../../modules/eks-auth"
-
+  source = "../../modules/eks_auth"
   cluster_name         = module.eks.cluster_name
   env                  = var.environment
   admin_group_name     = "eks:admin-group"
