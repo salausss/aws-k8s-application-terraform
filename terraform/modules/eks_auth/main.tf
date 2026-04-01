@@ -113,6 +113,17 @@ resource "kubernetes_cluster_role_binding" "admin" {
 }
 
 # -------------------------------------------------------
+# Creating Namespaces
+# -------------------------------------------------------
+resource "kubernetes_namespace" "admin+developer" {
+  for_each = toset(var.developer_namespaces)
+
+  metadata {
+    name = each.key
+  }
+}
+
+# -------------------------------------------------------
 # Developer ClusterRole (read-only cluster-wide)
 # -------------------------------------------------------
 resource "kubernetes_cluster_role" "developer_readonly" {
