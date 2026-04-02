@@ -11,10 +11,15 @@ resource "helm_release" "argocd" {
 
   skip_crds = false
 
+  atomic           = true
+  cleanup_on_fail  = true
+  replace          = true
+
   values = [<<EOF
-server:
-  service:
-    type: LoadBalancer
+  installCRDs: true
+  server:
+    service:
+       type: LoadBalancer
 EOF
   ]
 
