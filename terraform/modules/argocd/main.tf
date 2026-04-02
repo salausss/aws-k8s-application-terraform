@@ -29,44 +29,49 @@ resource "time_sleep" "wait_for_argocd_crds" {
 
 #--------- Create Application Through ArgoCD -------------------#
 
-resource "kubernetes_manifest" "taskflow_app" {
- depends_on = [time_sleep.wait_for_argocd_crds]
+resource "time_sleep" "wait_for_argocd_crds" {
+  depends_on      = [helm_release.argocd]
+  create_duration = "30s"
+}
 
-  manifest = {
-    apiVersion = "argoproj.io/v1alpha1"
-    kind       = "Application"
+resource "null_resource" "taskflow_app" {
+  depends_on = [time_sleep.wait_for_argocd_crds]
 
-    metadata = {
-      name      = "taskflow"
-      namespace = "argocd"
-    }
-
-    spec = {
-      project = "default"
-
-      source = {
-        repoURL        = "https://github.com/salausss/three-tier-application"
-        targetRevision = "main"
-        path           = "src/k8s/helm/taskflow"
-
-        helm = {
-          valueFiles = [
-            "../../values/dev/values.yaml"
-          ]
-        }
-      }
-
-      destination = {
-        server    = "https://kubernetes.default.svc"
-        namespace = "app"
-      }
-
-      syncPolicy = {
-        automated = {
-          prune    = true
-          selfHeal = true
-        }
-      }
-    }
+  triggers = {
+    manifest_hash = sha256(local.taskflow_manifest)
   }
+
+  provisioner "local-exec" {
+    command = <<EOT
+      cat <<'MANIFEST' | kubectl apply -f -
+${local.taskflow_manifest}
+MANIFEST
+    EOT
+  }
+}
+
+locals {
+  taskflow_manifest = <<YAML
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: taskflow
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/salausss/three-tier-application
+    targetRevision: main
+    path: src/k8s/helm/taskflow
+    helm:
+      valueFiles:
+        - ../../values/dev/values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: app
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+YAML
 }
