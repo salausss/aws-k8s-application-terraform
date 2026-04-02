@@ -6,6 +6,8 @@ resource "helm_release" "argocd" {
 
   namespace        = "argocd"
   create_namespace = true
+  wait             = true        # wait for all pods to be Ready
+  wait_for_jobs    = true
 
   values = [<<EOF
 server:
@@ -15,6 +17,12 @@ EOF
   ]
 
   timeout = 600
+}
+
+# Give the CRDs a moment to fully register in the API server
+resource "time_sleep" "wait_for_argocd_crds" {
+  depends_on      = [helm_release.argocd]
+  create_duration = "30s"
 }
 
 #--------- Create Application Through ArgoCD -------------------#
