@@ -19,7 +19,7 @@ resource "helm_release" "argocd" {
   installCRDs: true
   server:
     service:
-       type: LoadBalancer
+       type: ClusterIP
 EOF
   ]
 
