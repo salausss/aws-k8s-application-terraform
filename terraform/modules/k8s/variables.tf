@@ -9,3 +9,7 @@ variable "frontend_image" {
 variable "env" {
   type = string
 }
+
+variable "namespace" {
+  default = "app"
+}

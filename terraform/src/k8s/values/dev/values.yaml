@@ -13,3 +13,5 @@ postgres:
 ingress:
   enabled: true
   scheme: internet-facing
+
+namespace: app
