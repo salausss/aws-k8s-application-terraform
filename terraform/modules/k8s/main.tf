@@ -1,21 +1,17 @@
-locals {
-  k8s_path = "${path.module}/../../src/k8s"
+resource "helm_release" "taskflow" {
+  name       = "taskflow"
+  chart      = "${path.root}/../../k8s"
+  namespace  = "app"
 
-  manifests = flatten([
-    for f in fileset(local.k8s_path, "*.yaml") : [
-      for idx, doc in split("---", file("${local.k8s_path}/${f}")) : {
-        key = "${f}-${idx}"
-        content = try(
-          yamldecode(trimspace(doc)),
-          error("❌ YAML ERROR in file: ${f} (doc index: ${idx})")
-        )
-      }
-      if trimspace(doc) != ""
-    ]
-  ])
-}
+  create_namespace = false
 
-resource "kubernetes_manifest" "this" {
-  for_each = local.manifests
-  manifest  = each.value
+  values = [
+    file("${path.root}/../../k8s/values/dev.yaml")
+  ]
+
+  # 🔥 Important for stability
+  timeout          = 600
+  atomic           = true
+  cleanup_on_fail  = true
+  dependency_update = true
 }
