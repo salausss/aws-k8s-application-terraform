@@ -9,6 +9,12 @@ module "vpc" {
   private_subnet_cidrs  = ["10.1.11.0/24", "10.1.12.0/24"]
 }
 
+module "ecr" {
+  source = "../../modules/ecr"
+  repository_names = ["frontend","backend"]
+  environment = var.environment
+}
+
 module "kms" {
   source                = "../../modules/kms"
   name                  = var.project_name
@@ -51,4 +57,8 @@ module "alb_controller" {
   cluster_name     = module.eks.cluster_name
   aws_region       = var.aws_region
   vpc_id           = module.vpc.vpc_id
+}
+
+module "k8s" {
+  source = "../../modules/k8s"
 }
