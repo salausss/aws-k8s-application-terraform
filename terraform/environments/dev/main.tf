@@ -59,7 +59,11 @@ module "alb_controller" {
   vpc_id           = module.vpc.vpc_id
 }
 
-module "k8s" {
-  source = "../../modules/k8s"
-  env = var.environment
+#module "k8s" {
+#  source = "../../modules/k8s"
+#  env = var.environment
+#}
+
+module "argocd" {
+  source = "../../modules/argocd"
 }
