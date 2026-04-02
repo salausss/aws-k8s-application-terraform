@@ -5,3 +5,7 @@ variable "backend_image" {
 variable "frontend_image" {
   default = "frontend/application-frontend:latest"
 }
+
+variable "env" {
+  type = string
+}

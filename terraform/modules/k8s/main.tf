@@ -1,12 +1,12 @@
 resource "helm_release" "taskflow" {
   name       = "taskflow"
-  chart      = "${path.root}/../../src/k8s"
+  chart      = "${path.module}/../../src/k8s/helm/taskflow"
   namespace  = "app"
 
   create_namespace = false
 
   values = [
-    file("${path.root}/../../src/k8s/values/dev.yaml")
+    file("${path.module}/../../src/k8s/values/${var.env}/values.yaml")
   ]
 
   # 🔥 Important for stability
