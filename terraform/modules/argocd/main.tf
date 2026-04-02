@@ -28,7 +28,7 @@ resource "time_sleep" "wait_for_argocd_crds" {
 #--------- Create Application Through ArgoCD -------------------#
 
 resource "kubernetes_manifest" "taskflow_app" {
-  depends_on = [helm_release.argocd]
+ depends_on = [time_sleep.wait_for_argocd_crds]
 
   manifest = {
     apiVersion = "argoproj.io/v1alpha1"
