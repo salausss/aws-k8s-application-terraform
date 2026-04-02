@@ -32,18 +32,17 @@ metadata:
     alb.ingress.kubernetes.io/unhealthy-threshold-count: "3"
 
     # Performance
-    alb.ingress.kubernetes.io/load-balancer-attributes: >-
-      idle_timeout.timeout_seconds=60,
-      routing.http2.enabled=true,
-      access_logs.s3.enabled=false
+    #alb.ingress.kubernetes.io/load-balancer-attributes: >-
+    #  idle_timeout.timeout_seconds=60,
+    #  routing.http2.enabled=true,
+    #  access_logs.s3.enabled=false
 
     # Tags (optional but useful for cost tracking)
     alb.ingress.kubernetes.io/tags: "Project=taskflow,Environment=dev,ManagedBy=terraform"
 
 spec:
   rules:
-    - host: 
-      http:
+    - http:
         paths:
           - path: /
             pathType: Prefix

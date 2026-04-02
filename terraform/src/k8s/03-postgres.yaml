@@ -1,21 +1,3 @@
-# ── PostgreSQL PersistentVolumeClaim ─────────────────────────────
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: postgres-pvc
-  namespace: taskflow
-  labels:
-    app: taskflow
-    tier: database
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: gp2   # EKS default StorageClass — change to gp3 if you have it
-  resources:
-    requests:
-      storage: 5Gi
-
----
 # ── PostgreSQL Deployment ─────────────────────────────────────────
 apiVersion: apps/v1
 kind: Deployment
@@ -77,23 +59,3 @@ spec:
         - name: postgres-data
           persistentVolumeClaim:
             claimName: postgres-pvc
-
----
-# ── PostgreSQL Service (ClusterIP — internal only) ────────────────
-apiVersion: v1
-kind: Service
-metadata:
-  name: postgres-service
-  namespace: taskflow
-  labels:
-    app: taskflow
-    tier: database
-spec:
-  selector:
-    app: taskflow
-    tier: database
-  ports:
-    - name: postgres
-      port: 5432
-      targetPort: 5432
-  type: ClusterIP
