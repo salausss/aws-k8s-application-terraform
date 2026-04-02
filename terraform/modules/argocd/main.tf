@@ -9,6 +9,8 @@ resource "helm_release" "argocd" {
   wait             = true        # wait for all pods to be Ready
   wait_for_jobs    = true
 
+  skip_crds = false
+
   values = [<<EOF
 server:
   service:
