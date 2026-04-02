@@ -59,7 +59,7 @@ variable "ami_type" {
 variable "cluster_pool_machine_type" {
   description = "Instance type for cluster nodes."
   type        = string
-  default     = "t2.medium"
+  default     = "t2.xlarge"
 }
 
 variable "cluster_pool_disk_size_gb" {

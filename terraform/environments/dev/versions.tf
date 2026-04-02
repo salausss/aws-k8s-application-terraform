@@ -28,5 +28,8 @@ terraform {
       source  = "hashicorp/time"
       version = "~> 0.10"
     }
+    null  = {
+      
+    }
   }
 }
