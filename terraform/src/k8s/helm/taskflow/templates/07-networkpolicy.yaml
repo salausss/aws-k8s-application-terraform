@@ -8,7 +8,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: frontend-netpol
-  namespace: taskflow
+  namespace: app
 spec:
   podSelector:
     matchLabels:
@@ -39,7 +39,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: backend-netpol
-  namespace: taskflow
+  namespace: app
 spec:
   podSelector:
     matchLabels:
@@ -75,7 +75,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: postgres-netpol
-  namespace: taskflow
+  namespace: app
 spec:
   podSelector:
     matchLabels:

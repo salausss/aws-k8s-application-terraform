@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: db
-  namespace: taskflow
+  namespace: app
   labels:
     app: taskflow
 data:

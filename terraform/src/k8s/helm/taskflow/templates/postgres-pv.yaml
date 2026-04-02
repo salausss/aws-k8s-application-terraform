@@ -3,7 +3,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-pvc
-  namespace: taskflow
+  namespace: app
   labels:
     app: taskflow
     tier: database
