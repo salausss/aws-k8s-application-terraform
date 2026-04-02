@@ -29,11 +29,6 @@ resource "time_sleep" "wait_for_argocd_crds" {
 
 #--------- Create Application Through ArgoCD -------------------#
 
-resource "time_sleep" "wait_for_argocd_crds" {
-  depends_on      = [helm_release.argocd]
-  create_duration = "30s"
-}
-
 resource "null_resource" "taskflow_app" {
   depends_on = [time_sleep.wait_for_argocd_crds]
 
