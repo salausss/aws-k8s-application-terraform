@@ -61,4 +61,5 @@ module "alb_controller" {
 
 module "k8s" {
   source = "../../modules/k8s"
+  env = var.environment
 }
