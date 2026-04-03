@@ -68,3 +68,12 @@ module "alb_controller" {
 module "argocd" {
   source = "../../modules/argocd"
 }
+
+module "WAF" {
+  source = "../../modules/waf"
+  project_name = var.project_name
+  env = var.environment
+  alb_arn = module.argocd.alb_arn
+  rate_limit     = 1000
+  enable_logging = true
+}
