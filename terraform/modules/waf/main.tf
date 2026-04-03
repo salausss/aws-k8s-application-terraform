@@ -1,7 +1,7 @@
 resource "aws_wafv2_web_acl" "this" {
   name        = "${var.project_name}-${var.env}-waf"
   scope       = "REGIONAL"   # Use CLOUDFRONT for CloudFront distributions
-  description = "WAF Web ACL for ${var.project_name} (${var.env})"
+  description = "WAF Web ACL for ${var.project_name} ${var.env}"
 
   default_action {
     allow {}
