@@ -29,7 +29,10 @@ terraform {
       version = "~> 0.10"
     }
     null  = {
-      
+    }
+    kubectl = {
+      source  = "hashicorp-oss/kubectl"   
+      version = ">= 2.0.0"
     }
   }
 }

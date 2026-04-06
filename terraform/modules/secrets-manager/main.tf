@@ -448,11 +448,9 @@ resource "kubernetes_service_account" "taskflow_db" {
 # 7. SECRET PROVIDER CLASS MANIFESTS
 # ─────────────────────────────────────────────
 
-data "aws_region" "current" {}
-
-# App namespace — mounts app secrets into TaskFlow pods
-resource "kubernetes_manifest" "secret_provider_app" {
-  manifest = {
+# App namespace SecretProviderClass
+resource "kubectl_manifest" "secret_provider_app" {
+  yaml_body = yamlencode({
     apiVersion = "secrets-store.csi.x-k8s.io/v1"
     kind       = "SecretProviderClass"
 
@@ -465,38 +463,36 @@ resource "kubernetes_manifest" "secret_provider_app" {
       provider = "aws"
 
       parameters = {
-        region  = data.aws_region.current.name
+        region  = data.aws_region.current.id
         objects = yamlencode([
           {
             objectName  = aws_secretsmanager_secret.taskflow_app.name
             objectType  = "secretsmanager"
             objectAlias = "app-secrets"
-            # Optionally extract individual keys as separate files:
             jmesPath = [
-              { path = "JWT_SECRET",        objectAlias = "jwt_secret" },
-              { path = "API_KEY",           objectAlias = "api_key" },
-              { path = "COGNITO_SECRET",    objectAlias = "cognito_secret" },
+              { path = "JWT_SECRET",         objectAlias = "jwt_secret" },
+              { path = "API_KEY",            objectAlias = "api_key" },
+              { path = "COGNITO_SECRET",     objectAlias = "cognito_secret" },
               { path = "APP_ENCRYPTION_KEY", objectAlias = "app_encryption_key" },
             ]
           }
         ])
       }
 
-      # Sync to a real Kubernetes Secret so pods can use envFrom
       secretObjects = [
         {
           secretName = "taskflow-app-secrets"
           type       = "Opaque"
           data = [
-            { objectName = "jwt_secret",        key = "JWT_SECRET" },
-            { objectName = "api_key",           key = "API_KEY" },
-            { objectName = "cognito_secret",    key = "COGNITO_SECRET" },
+            { objectName = "jwt_secret",         key = "JWT_SECRET" },
+            { objectName = "api_key",            key = "API_KEY" },
+            { objectName = "cognito_secret",     key = "COGNITO_SECRET" },
             { objectName = "app_encryption_key", key = "APP_ENCRYPTION_KEY" },
           ]
         }
       ]
     }
-  }
+  })
 
   depends_on = [
     helm_release.aws_secrets_provider,
@@ -504,9 +500,9 @@ resource "kubernetes_manifest" "secret_provider_app" {
   ]
 }
 
-# DB namespace — mounts DB credentials into DB-layer pods
-resource "kubernetes_manifest" "secret_provider_db" {
-  manifest = {
+# DB namespace SecretProviderClass
+resource "kubectl_manifest" "secret_provider_db" {
+  yaml_body = yamlencode({
     apiVersion = "secrets-store.csi.x-k8s.io/v1"
     kind       = "SecretProviderClass"
 
@@ -519,7 +515,7 @@ resource "kubernetes_manifest" "secret_provider_db" {
       provider = "aws"
 
       parameters = {
-        region  = data.aws_region.current.name
+        region  = data.aws_region.current.id
         objects = yamlencode([
           {
             objectName  = aws_secretsmanager_secret.taskflow_db.name
@@ -550,7 +546,7 @@ resource "kubernetes_manifest" "secret_provider_db" {
         }
       ]
     }
-  }
+  })
 
   depends_on = [
     helm_release.aws_secrets_provider,
