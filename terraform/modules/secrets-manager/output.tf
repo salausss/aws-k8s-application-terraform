@@ -30,12 +30,12 @@ output "db_sa_role_arn" {
 
 output "app_service_account_name" {
   description = "Kubernetes service account name for app namespace"
-  value       = kubernetes_service_account.taskflow_app.metadata[0].name
+  value       = kubernetes_service_account_v1.taskflow_app.metadata[0].name
 }
 
 output "db_service_account_name" {
   description = "Kubernetes service account name for db namespace"
-  value       = kubernetes_service_account.taskflow_db.metadata[0].name
+  value       = kubernetes_service_account_v1.taskflow_db.metadata[0].name
 }
 
 output "rotation_lambda_arn" {
