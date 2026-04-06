@@ -17,16 +17,6 @@ variable "kms_key_arn" {
   type        = string
 }
 
-variable "oidc_provider_arn" {
-  description = "OIDC provider ARN for IRSA"
-  type        = string
-}
-
-variable "oidc_provider_url" {
-  description = "OIDC provider URL (without https://)"
-  type        = string
-}
-
 variable "app_namespace" {
   description = "Kubernetes namespace for app workloads"
   type        = string

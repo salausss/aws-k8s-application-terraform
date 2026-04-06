@@ -252,6 +252,19 @@ resource "aws_lambda_permission" "secrets_manager_invoke" {
 # 4. IRSA — IAM ROLES FOR SERVICE ACCOUNTS
 # ─────────────────────────────────────────────
 
+data "aws_eks_cluster" "primary" {
+  name = var.cluster_name
+}
+
+data "aws_iam_openid_connect_provider" "eks" {
+  url = data.aws_eks_cluster.primary.identity[0].oidc[0].issuer
+}
+
+locals {
+  oidc_issuer       = replace(data.aws_eks_cluster.primary.identity[0].oidc[0].issuer, "https://", "")
+  oidc_provider_arn = data.aws_iam_openid_connect_provider.eks.arn
+}
+
 # App namespace service account role
 data "aws_iam_policy_document" "app_sa_assume_role" {
   statement {
@@ -260,18 +273,18 @@ data "aws_iam_policy_document" "app_sa_assume_role" {
 
     principals {
       type        = "Federated"
-      identifiers = [var.oidc_provider_arn]
+      identifiers = [local.oidc_provider_arn]
     }
 
     condition {
       test     = "StringEquals"
-      variable = "${var.oidc_provider_url}:sub"
+      variable = "${local.oidc_issuer}:sub"
       values   = ["system:serviceaccount:${var.app_namespace}:${var.app_service_account}"]
     }
 
     condition {
       test     = "StringEquals"
-      variable = "${var.oidc_provider_url}:aud"
+      variable = "${local.oidc_issuer}:aud"
       values   = ["sts.amazonaws.com"]
     }
   }
@@ -320,18 +333,18 @@ data "aws_iam_policy_document" "db_sa_assume_role" {
 
     principals {
       type        = "Federated"
-      identifiers = [var.oidc_provider_url]
+      identifiers = [local.oidc_provider_arn]
     }
 
     condition {
       test     = "StringEquals"
-      variable = "${var.oidc_provider_url}:sub"
+      variable = "${local.oidc_issuer}:sub"
       values   = ["system:serviceaccount:${var.db_namespace}:${var.db_service_account}"]
     }
 
     condition {
       test     = "StringEquals"
-      variable = "${var.oidc_provider_url}:aud"
+      variable = "${local.oidc_issuer}:aud"
       values   = ["sts.amazonaws.com"]
     }
   }
