@@ -449,7 +449,7 @@ resource "kubernetes_service_account" "taskflow_db" {
 # ─────────────────────────────────────────────
 # App namespace SecretProviderClass
 resource "kubectl_manifest" "secret_provider_app" {
-  manifest = <<-YAML
+  yaml_body = <<-YAML
     apiVersion: secrets-store.csi.x-k8s.io/v1
     kind: SecretProviderClass
     metadata:
@@ -494,7 +494,7 @@ resource "kubectl_manifest" "secret_provider_app" {
 
 # DB namespace SecretProviderClass
 resource "kubectl_manifest" "secret_provider_db" {
-  manifest = <<-YAML
+  yaml_body = <<-YAML
     apiVersion: secrets-store.csi.x-k8s.io/v1
     kind: SecretProviderClass
     metadata:
