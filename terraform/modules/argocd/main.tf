@@ -80,6 +80,5 @@ data "aws_lb" "taskflow" {
   tags = {
     "ingress.k8s.aws/stack" = "app/taskflow-ingress"  # <namespace>/<ingress-name>
   }
-
   depends_on = [null_resource.taskflow_app]
 }

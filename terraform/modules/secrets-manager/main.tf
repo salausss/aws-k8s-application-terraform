@@ -447,96 +447,98 @@ resource "kubernetes_service_account" "taskflow_db" {
 # ─────────────────────────────────────────────
 # 7. SECRET PROVIDER CLASS MANIFESTS
 # ─────────────────────────────────────────────
-# App namespace SecretProviderClass
-resource "kubectl_manifest" "secret_provider_app" {
-  yaml_body = <<-YAML
-    apiVersion: secrets-store.csi.x-k8s.io/v1
-    kind: SecretProviderClass
-    metadata:
-      name: taskflow-app-secrets
-      namespace: ${var.app_namespace}
-    spec:
-      provider: aws
-      parameters:
-        region: ${var.region}
-        objects: |
-          - objectName: "${aws_secretsmanager_secret.taskflow_app.name}"
-            objectType: secretsmanager
-            objectAlias: app-secrets
-            jmesPath:
-              - path: JWT_SECRET
-                objectAlias: jwt_secret
-              - path: API_KEY
-                objectAlias: api_key
-              - path: COGNITO_SECRET
-                objectAlias: cognito_secret
-              - path: APP_ENCRYPTION_KEY
-                objectAlias: app_encryption_key
-      secretObjects:
-        - secretName: taskflow-app-secrets
-          type: Opaque
-          data:
-            - objectName: jwt_secret
-              key: JWT_SECRET
-            - objectName: api_key
-              key: API_KEY
-            - objectName: cognito_secret
-              key: COGNITO_SECRET
-            - objectName: app_encryption_key
-              key: APP_ENCRYPTION_KEY
-  YAML
+# Write SecretProviderClass YAMLs to temp files and apply via kubectl
+resource "null_resource" "secret_provider_classes" {
+  triggers = {
+    app_secret_name = aws_secretsmanager_secret.taskflow_app.name
+    db_secret_name  = aws_secretsmanager_secret.taskflow_db.name
+    app_namespace   = var.app_namespace
+    db_namespace    = var.db_namespace
+    region          = var.region
+    cluster_name    = var.cluster_name
+  }
 
-  depends_on = [
-    helm_release.aws_secrets_provider,
-    kubernetes_service_account.taskflow_app,
-  ]
-}
+  provisioner "local-exec" {
+    command = <<-EOT
+      # Apply app SecretProviderClass
+      cat <<EOF | kubectl apply -f -
+      apiVersion: secrets-store.csi.x-k8s.io/v1
+      kind: SecretProviderClass
+      metadata:
+        name: taskflow-app-secrets
+        namespace: ${var.app_namespace}
+      spec:
+        provider: aws
+        parameters:
+          region: ${var.region}
+          objects: |
+            - objectName: "${aws_secretsmanager_secret.taskflow_app.name}"
+              objectType: secretsmanager
+              objectAlias: app-secrets
+              jmesPath:
+                - path: JWT_SECRET
+                  objectAlias: jwt_secret
+                - path: API_KEY
+                  objectAlias: api_key
+                - path: COGNITO_SECRET
+                  objectAlias: cognito_secret
+                - path: APP_ENCRYPTION_KEY
+                  objectAlias: app_encryption_key
+        secretObjects:
+          - secretName: taskflow-app-secrets
+            type: Opaque
+            data:
+              - objectName: jwt_secret
+                key: JWT_SECRET
+              - objectName: api_key
+                key: API_KEY
+              - objectName: cognito_secret
+                key: COGNITO_SECRET
+              - objectName: app_encryption_key
+                key: APP_ENCRYPTION_KEY
+      EOF
 
-# DB namespace SecretProviderClass
-resource "kubectl_manifest" "secret_provider_db" {
-  yaml_body = <<-YAML
-    apiVersion: secrets-store.csi.x-k8s.io/v1
-    kind: SecretProviderClass
-    metadata:
-      name: taskflow-db-secrets
-      namespace: ${var.db_namespace}
-    spec:
-      provider: aws
-      parameters:
-        region: ${var.region}
-        objects: |
-          - objectName: "${aws_secretsmanager_secret.taskflow_db.name}"
-            objectType: secretsmanager
-            objectAlias: db-secrets
-            jmesPath:
-              - path: username
-                objectAlias: db_username
-              - path: password
-                objectAlias: db_password
-              - path: host
-                objectAlias: db_host
-              - path: port
-                objectAlias: db_port
-              - path: dbname
-                objectAlias: db_name
-      secretObjects:
-        - secretName: taskflow-db-credentials
-          type: Opaque
-          data:
-            - objectName: db_username
-              key: DB_USERNAME
-            - objectName: db_password
-              key: DB_PASSWORD
-            - objectName: db_host
-              key: DB_HOST
-            - objectName: db_port
-              key: DB_PORT
-            - objectName: db_name
-              key: DB_NAME
-  YAML
-
-  depends_on = [
-    helm_release.aws_secrets_provider,
-    kubernetes_service_account.taskflow_db,
-  ]
+      # Apply db SecretProviderClass
+      cat <<EOF | kubectl apply -f -
+      apiVersion: secrets-store.csi.x-k8s.io/v1
+      kind: SecretProviderClass
+      metadata:
+        name: taskflow-db-secrets
+        namespace: ${var.db_namespace}
+      spec:
+        provider: aws
+        parameters:
+          region: ${var.region}
+          objects: |
+            - objectName: "${aws_secretsmanager_secret.taskflow_db.name}"
+              objectType: secretsmanager
+              objectAlias: db-secrets
+              jmesPath:
+                - path: username
+                  objectAlias: db_username
+                - path: password
+                  objectAlias: db_password
+                - path: host
+                  objectAlias: db_host
+                - path: port
+                  objectAlias: db_port
+                - path: dbname
+                  objectAlias: db_name
+        secretObjects:
+          - secretName: taskflow-db-credentials
+            type: Opaque
+            data:
+              - objectName: db_username
+                key: DB_USERNAME
+              - objectName: db_password
+                key: DB_PASSWORD
+              - objectName: db_host
+                key: DB_HOST
+              - objectName: db_port
+                key: DB_PORT
+              - objectName: db_name
+                key: DB_NAME
+      EOF
+    EOT
+  }
 }
