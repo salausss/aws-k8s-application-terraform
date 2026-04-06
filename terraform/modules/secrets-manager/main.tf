@@ -460,7 +460,6 @@ resource "kubernetes_service_account" "taskflow_db" {
 # ─────────────────────────────────────────────
 # 7. SECRET PROVIDER CLASS MANIFESTS
 # ─────────────────────────────────────────────
-# Write SecretProviderClass YAMLs to temp files and apply via kubectl
 resource "null_resource" "secret_provider_classes" {
   triggers = {
     app_secret_name = aws_secretsmanager_secret.taskflow_app.name
@@ -469,50 +468,57 @@ resource "null_resource" "secret_provider_classes" {
     db_namespace    = var.db_namespace
     region          = var.region
     cluster_name    = var.cluster_name
+    manifest_hash   = sha256(join("", [
+      var.app_namespace,
+      var.db_namespace,
+      var.region,
+      aws_secretsmanager_secret.taskflow_app.name,
+      aws_secretsmanager_secret.taskflow_db.name,
+      "v3"
+    ]))
   }
 
   provisioner "local-exec" {
-    command = <<-EOT
-      # Apply app SecretProviderClass
-      cat <<EOF | kubectl apply -f -
-      apiVersion: secrets-store.csi.x-k8s.io/v1
-      kind: SecretProviderClass
-      metadata:
-        name: taskflow-app-secrets
-        namespace: ${var.app_namespace}
-      spec:
-        provider: aws
-        parameters:
-          region: ${var.region}
-          objects: |
-            - objectName: "${aws_secretsmanager_secret.taskflow_app.name}"
-              objectType: secretsmanager
-              objectAlias: app-secrets
-              jmesPath:
-                - path: JWT_SECRET
-                  objectAlias: jwt_secret
-                - path: API_KEY
-                  objectAlias: api_key
-                - path: COGNITO_SECRET
-                  objectAlias: cognito_secret
-                - path: APP_ENCRYPTION_KEY
-                  objectAlias: app_encryption_key
-        secretObjects:
-          - secretName: taskflow-app-secrets
-            type: Opaque
-            data:
-              - objectName: jwt_secret
-                key: JWT_SECRET
-              - objectName: api_key
-                key: API_KEY
-              - objectName: cognito_secret
-                key: COGNITO_SECRET
-              - objectName: app_encryption_key
-                key: APP_ENCRYPTION_KEY
-      EOF
+    command = <<-SCRIPT
+      aws eks update-kubeconfig --region ${var.region} --name ${var.cluster_name}
 
-      # Apply db SecretProviderClass
-cat <<EOF | kubectl apply -f -
+      cat <<EOF | kubectl apply -f -
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: taskflow-app-secrets
+  namespace: ${var.app_namespace}
+spec:
+  provider: aws
+  parameters:
+    region: ${var.region}
+    objects: |
+      - objectName: "${aws_secretsmanager_secret.taskflow_app.name}"
+        objectType: secretsmanager
+        jmesPath:
+          - path: JWT_SECRET
+            objectAlias: jwt_secret
+          - path: API_KEY
+            objectAlias: api_key
+          - path: COGNITO_SECRET
+            objectAlias: cognito_secret
+          - path: APP_ENCRYPTION_KEY
+            objectAlias: app_encryption_key
+  secretObjects:
+    - secretName: taskflow-app-secrets
+      type: Opaque
+      data:
+        - objectName: jwt_secret
+          key: JWT_SECRET
+        - objectName: api_key
+          key: API_KEY
+        - objectName: cognito_secret
+          key: COGNITO_SECRET
+        - objectName: app_encryption_key
+          key: APP_ENCRYPTION_KEY
+EOF
+
+      cat <<EOF | kubectl apply -f -
 apiVersion: secrets-store.csi.x-k8s.io/v1
 kind: SecretProviderClass
 metadata:
@@ -546,7 +552,26 @@ spec:
           key: POSTGRES_DB
         - objectName: db_password
           key: DB_PASSWORD
-      EOF
-    EOT
+EOF
+    SCRIPT
   }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-SCRIPT
+      aws eks update-kubeconfig \
+        --region ${self.triggers.region} \
+        --name ${self.triggers.cluster_name}
+      kubectl delete secretproviderclass taskflow-app-secrets \
+        -n ${self.triggers.app_namespace} --ignore-not-found
+      kubectl delete secretproviderclass taskflow-db-secrets \
+        -n ${self.triggers.db_namespace} --ignore-not-found
+    SCRIPT
+  }
+
+  depends_on = [
+    helm_release.aws_secrets_provider,
+    kubernetes_service_account_v1.taskflow_app,
+    kubernetes_service_account_v1.taskflow_db,
+  ]
 }
