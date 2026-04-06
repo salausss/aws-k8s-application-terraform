@@ -278,7 +278,7 @@ data "aws_iam_policy_document" "app_sa_assume_role" {
 }
 
 resource "aws_iam_role" "app_sa" {
-  name               = "${var.cluster_name}-${var.app_namespace}-sa-role"
+  name               = "${var.cluster_name}-${var.env}-${var.app_namespace}-sa-role"
   assume_role_policy = data.aws_iam_policy_document.app_sa_assume_role.json
   tags               = var.tags
 }
@@ -307,7 +307,7 @@ data "aws_iam_policy_document" "app_sa_secrets_policy" {
 }
 
 resource "aws_iam_role_policy" "app_sa_secrets" {
-  name   = "${var.cluster_name}-${var.app_namespace}-secrets-policy"
+  name   = "${var.cluster_name}-${var.env}-${var.app_namespace}-secrets-policy"
   role   = aws_iam_role.app_sa.id
   policy = data.aws_iam_policy_document.app_sa_secrets_policy.json
 }
@@ -320,7 +320,7 @@ data "aws_iam_policy_document" "db_sa_assume_role" {
 
     principals {
       type        = "Federated"
-      identifiers = [var.oidc_provider_arn]
+      identifiers = [var.oidc_provider_url]
     }
 
     condition {
@@ -338,7 +338,7 @@ data "aws_iam_policy_document" "db_sa_assume_role" {
 }
 
 resource "aws_iam_role" "db_sa" {
-  name               = "${var.cluster_name}-${var.db_namespace}-sa-role"
+  name               = "${var.cluster_name}-${var.env}-${var.db_namespace}-sa-role"
   assume_role_policy = data.aws_iam_policy_document.db_sa_assume_role.json
   tags               = var.tags
 }
@@ -367,7 +367,7 @@ data "aws_iam_policy_document" "db_sa_secrets_policy" {
 }
 
 resource "aws_iam_role_policy" "db_sa_secrets" {
-  name   = "${var.cluster_name}-${var.db_namespace}-secrets-policy"
+  name   = "${var.cluster_name}-${var.env}-${var.db_namespace}-secrets-policy"
   role   = aws_iam_role.db_sa.id
   policy = data.aws_iam_policy_document.db_sa_secrets_policy.json
 }
