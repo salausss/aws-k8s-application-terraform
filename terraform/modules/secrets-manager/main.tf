@@ -499,46 +499,38 @@ resource "null_resource" "secret_provider_classes" {
       EOF
 
       # Apply db SecretProviderClass
-      cat <<EOF | kubectl apply -f -
-      apiVersion: secrets-store.csi.x-k8s.io/v1
-      kind: SecretProviderClass
-      metadata:
-        name: taskflow-db-secrets
-        namespace: ${var.db_namespace}
-      spec:
-        provider: aws
-        parameters:
-          region: ${var.region}
-          objects: |
-            - objectName: "${aws_secretsmanager_secret.taskflow_db.name}"
-              objectType: secretsmanager
-              objectAlias: db-secrets
-              jmesPath:
-                - path: username
-                  objectAlias: db_username
-                - path: password
-                  objectAlias: db_password
-                - path: host
-                  objectAlias: db_host
-                - path: port
-                  objectAlias: db_port
-                - path: dbname
-                  objectAlias: db_name
-        secretObjects:
-          - secretName: taskflow-db-credentials
-            type: Opaque
-            data:
-              - objectName: db_username
-                key: DB_USERNAME
-              - objectName: db_password
-                key: DB_PASSWORD
-              - objectName: db_host
-                key: DB_HOST
-              - objectName: db_port
-                key: DB_PORT
-              - objectName: db_name
-                key: DB_NAME
-      EOF
-    EOT
-  }
-}
+cat <<EOF | kubectl apply -f -
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: taskflow-db-secrets
+  namespace: ${var.db_namespace}
+spec:
+  provider: aws
+  parameters:
+    region: ${var.region}
+    objects: |
+      - objectName: "${aws_secretsmanager_secret.taskflow_db.name}"
+        objectType: secretsmanager
+        jmesPath:
+          - path: POSTGRES_PASSWORD
+            objectAlias: postgres_password
+          - path: POSTGRES_USER
+            objectAlias: postgres_user
+          - path: POSTGRES_DB
+            objectAlias: postgres_db
+          - path: DB_PASSWORD
+            objectAlias: db_password
+  secretObjects:
+    - secretName: taskflow-db-credentials
+      type: Opaque
+      data:
+        - objectName: postgres_password
+          key: POSTGRES_PASSWORD
+        - objectName: postgres_user
+          key: POSTGRES_USER
+        - objectName: postgres_db
+          key: POSTGRES_DB
+        - objectName: db_password
+          key: DB_PASSWORD
+EOF
