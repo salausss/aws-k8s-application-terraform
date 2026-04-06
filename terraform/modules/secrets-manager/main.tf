@@ -458,7 +458,7 @@ resource "kubectl_manifest" "secret_provider_app" {
     spec:
       provider: aws
       parameters:
-        region: ${data.aws_region.current.id}
+        region: ${var.region}
         objects: |
           - objectName: "${aws_secretsmanager_secret.taskflow_app.name}"
             objectType: secretsmanager
@@ -503,7 +503,7 @@ resource "kubectl_manifest" "secret_provider_db" {
     spec:
       provider: aws
       parameters:
-        region: ${data.aws_region.current.id}
+        region: ${var.region}
         objects: |
           - objectName: "${aws_secretsmanager_secret.taskflow_db.name}"
             objectType: secretsmanager

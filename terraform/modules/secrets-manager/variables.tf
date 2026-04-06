@@ -8,6 +8,10 @@ variable "env" {
   type        = string
 }
 
+variable "region" {
+  type = string
+}
+
 variable "kms_key_arn" {
   description = "KMS CMK ARN for encrypting secrets"
   type        = string
