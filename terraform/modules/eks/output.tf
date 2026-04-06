@@ -23,8 +23,8 @@ output "oidc_provider_url" {
 }
 
 output "oidc_provider_arn" {
-  description = "The OIDC provider URL for the cluster, used for IAM Roles for Service Accounts (IRSA)."
-  value = aws_eks_cluster.primary.identity[0].oidc.arn
+  description = "OIDC provider ARN for IRSA"
+  value       = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${replace(aws_eks_cluster.primary.identity[0].oidc[0].issuer, "https://", "")}"
 }
 
 output "configure_kubectl" {
