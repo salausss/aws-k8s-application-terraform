@@ -529,7 +529,7 @@ spec:
   parameters:
     region: ${var.region}
     objects: |
-      - objectName: "${aws_secretsmanager_secret.taskflow_db.name}"
+      - objectName: "${aws_secretsmanager_secret.taskflow_db.arn}"
         objectType: secretsmanager
         jmesPath:
           - path: password
