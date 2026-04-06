@@ -79,7 +79,7 @@ module "WAF" {
 }
 
 module "SecretsManager" {
-  source = "../../modules/waf/secrets-manager"
+  source = "../../modules/secrets-manager"
   cluster_name = module.eks.cluster_name
   env = var.environment
   kms_key_arn       = module.kms.key_arn         

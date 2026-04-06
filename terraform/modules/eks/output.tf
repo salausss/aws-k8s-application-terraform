@@ -22,6 +22,11 @@ output "oidc_provider_url" {
   value       = aws_eks_cluster.primary.identity[0].oidc[0].issuer
 }
 
+output "oidc_provider_arn" {
+  description = "The OIDC provider URL for the cluster, used for IAM Roles for Service Accounts (IRSA)."
+  value = aws_eks_cluster.primary.identity[0].oidc.arn
+}
+
 output "configure_kubectl" {
   description = "A command to configure kubectl to connect to the new EKS cluster."
   value = "aws eks update-kubeconfig --region ${split(":", aws_eks_cluster.primary.arn)[3]} --name ${aws_eks_cluster.primary.name}"
