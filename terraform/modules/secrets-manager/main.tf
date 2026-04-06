@@ -533,4 +533,7 @@ spec:
           key: POSTGRES_DB
         - objectName: db_password
           key: DB_PASSWORD
-EOF
+      EOF
+    EOT
+  }
+}
