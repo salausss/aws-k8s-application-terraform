@@ -32,7 +32,7 @@ terraform {
     }
     kubectl = {
       source  = "hashicorp-oss/kubectl"   
-      version = "~> 0.1.5"
+      version = "~> 0.1"
     }
   }
 }
