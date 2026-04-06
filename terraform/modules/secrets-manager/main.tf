@@ -423,7 +423,7 @@ resource "helm_release" "aws_secrets_provider" {
 # 6. KUBERNETES SERVICE ACCOUNTS (with IRSA annotation)
 # ─────────────────────────────────────────────
 
-resource "kubernetes_service_account" "taskflow_app" {
+resource "kubernetes_service_account_v1" "taskflow_app" {
   metadata {
     name      = var.app_service_account
     namespace = var.app_namespace
@@ -440,7 +440,7 @@ resource "kubernetes_service_account" "taskflow_app" {
   depends_on = [aws_iam_role_policy.app_sa_secrets]
 }
 
-resource "kubernetes_service_account" "taskflow_db" {
+resource "kubernetes_service_account_v1" "taskflow_db" {
   metadata {
     name      = var.db_service_account
     namespace = var.db_namespace
