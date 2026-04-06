@@ -83,8 +83,6 @@ module "SecretsManager" {
   cluster_name = module.eks.cluster_name
   env = var.environment
   kms_key_arn       = module.kms.key_arn         
-  oidc_provider_arn = module.eks.oidc_provider_arn
-  oidc_provider_url = module.eks.oidc_provider_url  # without https://
   app_namespace       = "app"
   db_namespace        = "db"
   app_service_account = "taskflow-app-sa"
