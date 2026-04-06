@@ -90,4 +90,7 @@ module "SecretsManager" {
   app_service_account = "taskflow-app-sa"
   db_service_account  = "taskflow-db-sa"
   rotation_days       = 30
+  providers = {
+    kubectl = kubectl
+  }
 }
