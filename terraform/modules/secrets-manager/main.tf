@@ -532,14 +532,13 @@ spec:
       - objectName: "${aws_secretsmanager_secret.taskflow_db.name}"
         objectType: secretsmanager
         jmesPath:
-          - path: POSTGRES_PASSWORD
+          - path: password
             objectAlias: postgres_password
-          - path: POSTGRES_USER
+          - path: username
             objectAlias: postgres_user
-          - path: POSTGRES_DB
+          - path: dbname
             objectAlias: postgres_db
-          - path: DB_PASSWORD
-            objectAlias: db_password
+
   secretObjects:
     - secretName: taskflow-db-credentials
       type: Opaque
@@ -550,22 +549,8 @@ spec:
           key: POSTGRES_USER
         - objectName: postgres_db
           key: POSTGRES_DB
-        - objectName: db_password
-          key: DB_PASSWORD
-EOF
-    SCRIPT
-  }
 
-  provisioner "local-exec" {
-    when    = destroy
-    command = <<-SCRIPT
-      aws eks update-kubeconfig \
-        --region ${self.triggers.region} \
-        --name ${self.triggers.cluster_name}
-      kubectl delete secretproviderclass taskflow-app-secrets \
-        -n ${self.triggers.app_namespace} --ignore-not-found
-      kubectl delete secretproviderclass taskflow-db-secrets \
-        -n ${self.triggers.db_namespace} --ignore-not-found
+EOF
     SCRIPT
   }
 
