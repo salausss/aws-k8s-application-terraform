@@ -518,7 +518,7 @@ spec:
           key: APP_ENCRYPTION_KEY
 EOF
 
-      cat <<EOF | kubectl apply -f -
+cat <<EOF | kubectl apply -f -
 apiVersion: secrets-store.csi.x-k8s.io/v1
 kind: SecretProviderClass
 metadata:
@@ -538,7 +538,6 @@ spec:
             objectAlias: postgres_user
           - path: dbname
             objectAlias: postgres_db
-
   secretObjects:
     - secretName: taskflow-db-credentials
       type: Opaque
@@ -549,14 +548,7 @@ spec:
           key: POSTGRES_USER
         - objectName: postgres_db
           key: POSTGRES_DB
-
 EOF
     SCRIPT
   }
-
-  depends_on = [
-    helm_release.aws_secrets_provider,
-    kubernetes_service_account_v1.taskflow_app,
-    kubernetes_service_account_v1.taskflow_db,
-  ]
 }
