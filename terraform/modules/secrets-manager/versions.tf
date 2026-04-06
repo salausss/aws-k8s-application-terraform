@@ -1,8 +1,8 @@
 terraform {
   required_providers {
     kubectl = {
-      source  = "hashicorp-oss/kubectl"
-      version = "~> 0.1"
+        source  = "alekc/kubectl"
+        version = "~> 2.0"
     }
   }
 }
