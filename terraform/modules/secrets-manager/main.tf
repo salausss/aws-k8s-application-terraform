@@ -504,6 +504,16 @@ spec:
             objectAlias: cognito_secret
           - path: APP_ENCRYPTION_KEY
             objectAlias: app_encryption_key
+
+      - objectName: "${aws_secretsmanager_secret.taskflow_db.arn}"
+        objectType: secretsmanager
+        jmesPath:
+          - path: password
+            objectAlias: postgres_password
+          - path: username
+            objectAlias: postgres_user
+          - path: dbname
+            objectAlias: postgres_db
   secretObjects:
     - secretName: taskflow-app-secrets
       type: Opaque
@@ -516,6 +526,16 @@ spec:
           key: COGNITO_SECRET
         - objectName: app_encryption_key
           key: APP_ENCRYPTION_KEY
+
+    - secretName: taskflow-db-credentials
+      type: Opaque
+      data:
+        - objectName: postgres_password
+          key: POSTGRES_PASSWORD
+        - objectName: postgres_user
+          key: POSTGRES_USER
+        - objectName: postgres_db
+          key: POSTGRES_DB
 EOF
 
 cat <<EOF | kubectl apply -f -
