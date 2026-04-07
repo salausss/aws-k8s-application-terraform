@@ -85,12 +85,18 @@ resource "aws_prometheus_workspace" "this" {
   alias = "${var.cluster_name}-${var.env}-amp"
 }
 
+provider "aws" {
+  alias  = "grafana"
+  region = "us-east-1" # AMG
+}
+
 resource "aws_grafana_workspace" "this" {
+  provider = aws.grafana 
   name                     = "${var.cluster_name}-${var.env}-grafana"
   account_access_type      = "CURRENT_ACCOUNT"
   authentication_providers = ["AWS_SSO"]
   permission_type          = "SERVICE_MANAGED"
   role_arn = aws_iam_role.grafana_role.arn
-  region = us-east-1 # Grafana is only available in us-east-1, but can query AMP in other regions
+  region = "us-east-1" # Grafana is only available in us-east-1, but can query AMP in other regions
 }
 
