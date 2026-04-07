@@ -26,6 +26,7 @@ resource "aws_secretsmanager_secret_version" "taskflow_app" {
     API_KEY          = "PLACEHOLDER_REPLACE_ME"
     COGNITO_SECRET   = "PLACEHOLDER_REPLACE_ME"
     APP_ENCRYPTION_KEY = "PLACEHOLDER_REPLACE_ME"
+    
   })
 
   lifecycle {
@@ -514,6 +515,10 @@ spec:
             objectAlias: postgres_user
           - path: dbname
             objectAlias: postgres_db
+          - path: host
+            objectAlias: postgres_host
+          - path: port
+            objectAlias: postgres_port
   secretObjects:
     - secretName: taskflow-app-secrets
       type: Opaque
@@ -536,6 +541,10 @@ spec:
           key: POSTGRES_USER
         - objectName: postgres_db
           key: POSTGRES_DB
+        - objectName: postgres_host
+          key: POSTGRES_HOST
+        - objectName: postgres_port
+          key: POSTGRES_PORT
 EOF
 
 cat <<EOF | kubectl apply -f -
