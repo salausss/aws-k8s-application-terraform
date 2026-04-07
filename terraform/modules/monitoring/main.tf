@@ -68,12 +68,12 @@ resource "aws_iam_role" "adot_role" {
     Statement = [{
       Effect = "Allow"
       Principal = {
-        Federated = locals.oidc_provider_arn
+        Federated = local.oidc_provider_arn
       }
       Action = "sts:AssumeRoleWithWebIdentity"
       Condition = {
         StringEquals = {
-          "${locals.oidc_issuer}:sub" = "system:serviceaccount:observability:adot-collector"
+          "${local.oidc_issuer}:sub" = "system:serviceaccount:observability:adot-collector"
         }
       }
     }]
