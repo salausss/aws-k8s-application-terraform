@@ -75,7 +75,7 @@ resource "aws_iam_policy" "adot_amp" {
 }
 
 resource "aws_iam_role_policy_attachment" "adot_attach" {
-  role       = aws_iam_role.adot.name
+  role       = aws_iam_role.adot_role.name
   policy_arn = aws_iam_policy.adot_amp.arn
 }
 
