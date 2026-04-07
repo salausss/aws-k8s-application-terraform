@@ -305,8 +305,8 @@ data "aws_iam_policy_document" "app_sa_secrets_policy" {
       "secretsmanager:GetSecretValue",
       "secretsmanager:DescribeSecret",
     ]
-    # Scoped to ONLY the app secret — not DB, not other secrets
-    resources = [aws_secretsmanager_secret.taskflow_app.arn]
+    # Scoped to ONLY the app secret & db secret as backend need DB access.
+    resources = ["aws_secretsmanager_secret.taskflow_app.arn","aws_secretsmanager_secret.taskflow_db.arn"]
   }
 
   statement {
