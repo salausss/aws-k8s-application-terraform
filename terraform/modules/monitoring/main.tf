@@ -19,30 +19,6 @@ resource "aws_iam_role_policy_attachment" "grafana_amp_access" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonPrometheusQueryAccess"
 }
 
-# ------------ IAM Role for Prometheus remote write ------------ #
-resource "aws_iam_policy" "amp_remote_write" {
-  name = "${var.cluster_name}-${var.env}-amp-remote-write"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Action = [
-        "aps:RemoteWrite",
-        "aps:GetSeries",
-        "aps:GetLabels",
-        "aps:GetMetricMetadata"
-      ]
-      Resource = aws_prometheus_workspace.this.arn
-    }]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "adot_attach" {
-  role       = aws_iam_role.adot_role.name
-  policy_arn = aws_iam_policy.amp_remote_write.arn
-}
-
 # ------------ OIDC details from EKS for ADOT Role ------------ #
 data "aws_caller_identity" "current" {}
 
