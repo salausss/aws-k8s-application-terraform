@@ -95,4 +95,5 @@ module "observability" {
   source = "../../modules/monitoring"
   cluster_name = module.eks.cluster_name
   env = var.environment
+  region = var.aws_region
 }

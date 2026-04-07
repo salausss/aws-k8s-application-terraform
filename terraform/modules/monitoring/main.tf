@@ -59,7 +59,7 @@ locals {
   oidc_provider_arn = data.aws_iam_openid_connect_provider.eks.arn
 }
 
-# ------------ ADOT Role for Prometheus remote write ------------ #
+# ------------ ADOT Role & Policy for Prometheus remote write ------------ #
 resource "aws_iam_role" "adot_role" {
   name = "${var.cluster_name}-${var.env}-adot-role"
 
@@ -78,6 +78,29 @@ resource "aws_iam_role" "adot_role" {
       }
     }]
   })
+}
+
+resource "aws_iam_policy" "adot_amp" {
+  name = "${var.cluster_name}-adot-amp-policy"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "aps:RemoteWrite",
+        "aps:GetSeries",
+        "aps:GetLabels",
+        "aps:GetMetricMetadata"
+      ]
+      Resource = aws_prometheus_workspace.this.arn
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "adot_attach" {
+  role       = aws_iam_role.adot.name
+  policy_arn = aws_iam_policy.adot_amp.arn
 }
 
 # ------------ AWS Managed Grafana Workspace & Prometheus Workspace ------------ #
@@ -100,3 +123,31 @@ resource "aws_grafana_workspace" "this" {
   region = "us-east-1" # Grafana is only available in us-east-1, but can query AMP in other regions
 }
 
+# ------------ ADOT Collector Helm Chart for Prometheus Remote Write ------------ #
+
+resource "helm_release" "adot" {
+  name       = "adot-collector"
+  repository = "https://aws.github.io/eks-charts"
+  chart      = "adot-exporter-for-eks"
+  namespace  = "observability"
+
+  create_namespace = true
+
+  values = [
+    yamlencode({
+      region = var.region
+
+      serviceAccount = {
+        create = true
+        name   = "adot-collector"
+        annotations = {
+          "eks.amazonaws.com/role-arn" = aws_iam_role.adot_role.arn
+        }
+      }
+
+      amp = {
+        endpoint = aws_prometheus_workspace.this.prometheus_endpoint
+      }
+    })
+  ]
+}
