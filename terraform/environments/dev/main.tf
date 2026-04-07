@@ -90,3 +90,9 @@ module "SecretsManager" {
   rotation_days       = 30
   region              = var.aws_region
 }
+
+module "observability" {
+  source = "../../modules/monitoring"
+  cluster_name = module.eks.cluster_name
+  env = var.environment
+}
