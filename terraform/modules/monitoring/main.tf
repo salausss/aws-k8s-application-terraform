@@ -16,7 +16,7 @@ resource "aws_iam_role" "grafana_role" {
 
 resource "aws_iam_role_policy_attachment" "grafana_amp_access" {
   role       = aws_iam_role.grafana_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonPrometheusReadOnlyAccess"
+  policy_arn = "arn:aws:iam::aws:policy/AmazonPrometheusQueryAccess"
 }
 
 # ------------ IAM Role for Prometheus remote write ------------ #
@@ -91,5 +91,6 @@ resource "aws_grafana_workspace" "this" {
   authentication_providers = ["AWS_SSO"]
   permission_type          = "SERVICE_MANAGED"
   role_arn = aws_iam_role.grafana_role.arn
+  region = us-east-1 # Grafana is only available in us-east-1, but can query AMP in other regions
 }
 
