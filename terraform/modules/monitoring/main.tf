@@ -86,9 +86,9 @@ resource "aws_prometheus_workspace" "this" {
   alias = "${var.cluster_name}-${var.env}-amp"
 }
 
-provider "grafana" {
+provider "grafana/grafana" {
   url  = aws_grafana_workspace.this.endpoint
-  auth = "aws_grafana_workspace_api_key.key.key"
+  auth = aws_grafana_workspace_api_key.key.key
 }
 
 resource "aws_grafana_workspace_api_key" "key" {
