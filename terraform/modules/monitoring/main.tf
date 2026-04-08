@@ -267,7 +267,7 @@ resource "kubernetes_cluster_role_binding" "adot" {
 
   subject {
     kind      = "ServiceAccount"
-    name      = "adot-collector"
+    name      = "${var.cluster_name}-${var.env}-adot-collector-sa"
     namespace = "observability"
   }
 }
