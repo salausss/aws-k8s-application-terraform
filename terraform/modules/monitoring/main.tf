@@ -1,3 +1,12 @@
+terraform {
+  required_providers {
+    grafana = {
+      source  = "grafana/grafana"
+      version = "~> 4.0"
+    }
+  }
+}
+
 # ------------ IAM Role for Grafana ------------ #
 resource "aws_iam_role" "grafana_role" {
   name = "${var.cluster_name}-${var.env}-grafana-role"
@@ -86,7 +95,7 @@ resource "aws_prometheus_workspace" "this" {
   alias = "${var.cluster_name}-${var.env}-amp"
 }
 
-provider "grafana/grafana" {
+provider "grafana" {
   url  = aws_grafana_workspace.this.endpoint
   auth = aws_grafana_workspace_api_key.key.key
 }
