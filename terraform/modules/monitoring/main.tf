@@ -115,7 +115,7 @@ resource "helm_release" "adot" {
       image = {
         repository = "public.ecr.aws/aws-observability/aws-otel-collector"
         tag        = "latest" 
-      }
+      } 
 
       serviceAccount = {
         create = true
