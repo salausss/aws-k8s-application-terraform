@@ -16,7 +16,7 @@ resource "aws_iam_role" "grafana_role" {
 
 resource "aws_iam_role_policy_attachment" "grafana_amp_access" {
   role       = aws_iam_role.grafana_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonPrometheusQueryAccess"
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess" # For simplicity, using admin access. In production, scope this down to only necessary permissions.
 }
 
 # ------------ OIDC details from EKS for ADOT Role ------------ #
@@ -86,6 +86,20 @@ resource "aws_prometheus_workspace" "this" {
   alias = "${var.cluster_name}-${var.env}-amp"
 }
 
+provider "grafana" {
+  url   = "https://${aws_grafana_workspace.this.endpoint}"
+  # For automation, it's best to use an AWS IAM role or a workspace API key
+  auth  = aws_grafana_workspace_api_key.key.key 
+}
+
+resource "aws_grafana_workspace_api_key" "key" {
+  provider     = aws.grafana
+  key_name     = "terraform-automation"
+  key_role     = "ADMIN"
+  seconds_to_live = 3600
+  workspace_id = aws_grafana_workspace.this.id
+}
+
 provider "aws" {
   alias  = "grafana"
   region = "us-east-1" # AMG is only available in us-east-1.
@@ -99,21 +113,20 @@ resource "aws_grafana_workspace" "this" {
   permission_type          = "SERVICE_MANAGED"
   role_arn = aws_iam_role.grafana_role.arn
   region = "us-east-1" # Grafana is only available in us-east-1, but can query AMP in other regions
+  data_sources = ["PROMETHEUS"]
 }
 
-resource "aws_grafana_workspace_data_source" "amp" {
-  provider = aws.grafana
+resource "grafana_data_source" "amp" {
+  type = "prometheus"
+  name = "Amazon Managed Prometheus"
+  url  = aws_prometheus_workspace.this.prometheus_endpoint
 
-  workspace_id = aws_grafana_workspace.this.id
-  name         = "AMP"
-  type         = "prometheus"
-
-  json_data = jsonencode({
-    httpMethod = "POST"
-    sigV4Auth  = true
-    sigV4Region = var.region   # ap-south-1
+  json_data_encoded = jsonencode({
+    httpMethod    = "POST"
+    sigV4Auth     = true
+    sigV4Region   = var.region # ap-south-1
+    sigV4AuthType = "workspace-iam-role"
   })
-  secure_json_data = jsonencode({})
 }
 
 # ------------ ADOT Collector Helm Chart for Prometheus Remote Write ------------ #
