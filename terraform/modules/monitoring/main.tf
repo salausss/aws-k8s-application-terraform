@@ -130,6 +130,7 @@ resource "helm_release" "adot" {
         extensions = {
           sigv4auth = {
             region = var.region
+            service = "aps"
           }
         health_check = {} 
         }
