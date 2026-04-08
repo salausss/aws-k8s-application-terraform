@@ -113,7 +113,8 @@ resource "helm_release" "adot" {
       mode = "daemonset"
 
       image = {
-        repository = "public.ecr.aws/aws-observability/aws-otel-collector" 
+        repository = "public.ecr.aws/aws-observability/aws-otel-collector"
+        tag        = "latest" 
       }
 
       serviceAccount = {
