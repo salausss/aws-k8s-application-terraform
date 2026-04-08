@@ -129,8 +129,9 @@ resource "helm_release" "adot" {
           sigv4auth = {
             region = var.region
           }
+        health_check = {} 
         }
-
+        
         receivers = {
           prometheus = {
             config = {
