@@ -100,18 +100,21 @@ resource "aws_grafana_workspace" "this" {
 }
 
 # ------------ ADOT Collector Helm Chart for Prometheus Remote Write ------------ #
-
 resource "helm_release" "adot" {
   name       = "adot-collector"
-  repository = "https://aws.github.io/eks-charts"
-  chart      = "adot-exporter-for-eks"
+  repository = "https://open-telemetry.github.io/opentelemetry-helm-charts"
+  chart      = "opentelemetry-collector"
   namespace  = "observability"
 
   create_namespace = true
 
   values = [
     yamlencode({
-      region = var.region
+      mode = "daemonset"
+
+      image = {
+        repository = "public.ecr.aws/aws-observability/aws-otel-collector" 
+      }
 
       serviceAccount = {
         create = true
@@ -121,9 +124,55 @@ resource "helm_release" "adot" {
         }
       }
 
-      amp = {
-        endpoint = aws_prometheus_workspace.this.prometheus_endpoint
+      config = {
+        extensions = {
+          sigv4auth = {
+            region = var.region
+          }
+        }
+
+        receivers = {
+          prometheus = {
+            config = {
+              scrape_configs = [
+                {
+                  job_name = "kubernetes-nodes"
+                  kubernetes_sd_configs = [{ role = "node" }]
+                },
+                {
+                  job_name = "kubernetes-pods"
+                  kubernetes_sd_configs = [{ role = "pod" }]
+                }
+              ]
+            }
+          }
+        }
+
+        exporters = {
+          prometheusremotewrite = {
+            endpoint = "${aws_prometheus_workspace.this.prometheus_endpoint}/api/v1/remote_write"
+
+            auth = {
+              authenticator = "sigv4auth"
+            }
+          }
+        }
+
+        service = {
+          extensions = ["sigv4auth"]
+
+          pipelines = {
+            metrics = {
+              receivers  = ["prometheus"]
+              exporters  = ["prometheusremotewrite"]
+            }
+          }
+        }
       }
     })
+  ]
+
+  depends_on = [
+    aws_iam_role_policy_attachment.adot_attach
   ]
 }
