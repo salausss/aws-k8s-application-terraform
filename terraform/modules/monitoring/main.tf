@@ -160,7 +160,7 @@ resource "helm_release" "adot" {
         }
 
         service = {
-          extensions = ["sigv4auth"]
+          extensions = ["sigv4auth", "health_check"] 
 
           pipelines = {
             metrics = {
