@@ -49,7 +49,7 @@ resource "aws_iam_role" "adot_role" {
       Action = "sts:AssumeRoleWithWebIdentity"
       Condition = {
         StringEquals = {
-          "${local.oidc_issuer}:sub" = "system:serviceaccount:observability:adot-collector"
+          "${local.oidc_issuer}:sub" = "system:serviceaccount:observability:${var.cluster_name}-${var.env}-adot-collector-sa"
           "${local.oidc_issuer}:aud" = "sts.amazonaws.com"
         }
       }
