@@ -129,10 +129,7 @@ resource "helm_release" "adot" {
 
       config = {
         extensions = {
-          sigv4auth = {
-            region  = var.region
-            service = "aps"
-          }
+          sigv4auth    = { region = var.region, service = "aps" }
           health_check = {}
         }
 
@@ -141,114 +138,47 @@ resource "helm_release" "adot" {
             config = {
               scrape_configs = [
                 {
-                  job_name = "kubernetes-nodes"
-                  scheme   = "https"
-
+                  job_name          = "kubernetes-nodes"
+                  scheme            = "https"
+                  bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
                   tls_config = {
                     ca_file              = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
                     insecure_skip_verify = false
                   }
-
-                  bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
-
                   kubernetes_sd_configs = [{ role = "node" }]
-
                   relabel_configs = [
-                    {
-                      target_label = "__address__"
-                      replacement  = "kubernetes.default.svc:443"
-                    },
-                    {
-                      source_labels = ["__meta_kubernetes_node_name"]
-                      regex         = "(.+)"
-                      target_label  = "__metrics_path__"
-                      replacement   = "/api/v1/nodes/$1/proxy/metrics"
-                    },
-                    {
-                      action = "labelmap"
-                      regex  = "__meta_kubernetes_node_label_(.+)"
-                    }
+                    { target_label = "__address__", replacement = "kubernetes.default.svc:443" },
+                    { source_labels = ["__meta_kubernetes_node_name"], regex = "(.+)", target_label = "__metrics_path__", replacement = "/api/v1/nodes/$1/proxy/metrics" },
+                    { action = "labelmap", regex = "__meta_kubernetes_node_label_(.+)" }
                   ]
                 },
-
                 {
-                  job_name = "kubernetes-nodes-cadvisor"
-                  scheme   = "https"
-
+                  job_name          = "kubernetes-nodes-cadvisor"
+                  scheme            = "https"
+                  bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
                   tls_config = {
                     ca_file              = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
                     insecure_skip_verify = false
                   }
-
-                  bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
-
                   kubernetes_sd_configs = [{ role = "node" }]
-
                   relabel_configs = [
-                    {
-                      target_label = "__address__"
-                      replacement  = "kubernetes.default.svc:443"
-                    },
-                    {
-                      source_labels = ["__meta_kubernetes_node_name"]
-                      regex         = "(.+)"
-                      target_label  = "__metrics_path__"
-                      replacement   = "/api/v1/nodes/$1/proxy/metrics/cadvisor"
-                    },
-                    {
-                      action = "labelmap"
-                      regex  = "__meta_kubernetes_node_label_(.+)"
-                    }
+                    { target_label = "__address__", replacement = "kubernetes.default.svc:443" },
+                    { source_labels = ["__meta_kubernetes_node_name"], regex = "(.+)", target_label = "__metrics_path__", replacement = "/api/v1/nodes/$1/proxy/metrics/cadvisor" },
+                    { action = "labelmap", regex = "__meta_kubernetes_node_label_(.+)" }
                   ]
                 },
-
                 {
-                  job_name = "kubernetes-pods"
-
+                  job_name              = "kubernetes-pods"
                   kubernetes_sd_configs = [{ role = "pod" }]
-
                   relabel_configs = [
-                    {
-                      source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_scrape"]
-                      action        = "keep"
-                      regex         = "true"
-                    },
-                    {
-                      source_labels = ["__address__"]
-                      action        = "drop"
-                      regex         = ".*:9443"
-                    },
-                    {
-                      source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_scheme"]
-                      action        = "replace"
-                      target_label  = "__scheme__"
-                      regex         = "(https?)"
-                    },
-                    {
-                      source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_path"]
-                      action        = "replace"
-                      target_label  = "__metrics_path__"
-                      regex         = "(.+)"
-                    },
-                    {
-                      source_labels = ["__address__", "__meta_kubernetes_pod_annotation_prometheus_io_port"]
-                      action        = "replace"
-                      target_label  = "__address__"
-                      regex         = "([^:]+)(?::\\d+)?;(\\d+)"
-                      replacement   = "$1:$2"
-                    },
-                    {
-                      action = "labelmap"
-                      regex  = "__meta_kubernetes_pod_label_(.+)"
-                    },
-                    {
-                      source_labels = ["__meta_kubernetes_namespace"]
-                      target_label  = "namespace"
-                    },
-                    {
-                      source_labels = ["__meta_kubernetes_pod_name"]
-                      target_label  = "pod"
-                    }
+                    { source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_scrape"], action = "keep", regex = "true" },
+                    { source_labels = ["__address__"], action = "drop", regex = ".*:9443" },
+                    { source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_scheme"], action = "replace", target_label = "__scheme__", regex = "(https?)" },
+                    { source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_path"], action = "replace", target_label = "__metrics_path__", regex = "(.+)" },
+                    { source_labels = ["__address__", "__meta_kubernetes_pod_annotation_prometheus_io_port"], action = "replace", target_label = "__address__", regex = "([^:]+)(?::\\d+)?;(\\d+)", replacement = "$1:$2" },
+                    { action = "labelmap", regex = "__meta_kubernetes_pod_label_(.+)" },
+                    { source_labels = ["__meta_kubernetes_namespace"], target_label = "namespace" },
+                    { source_labels = ["__meta_kubernetes_pod_name"], target_label = "pod" }
                   ]
                 }
               ]
@@ -256,31 +186,35 @@ resource "helm_release" "adot" {
           }
         }
 
+        # ── Bug 2 fix: define processors before referencing them ──
         processors = {
-          batch = {}
+          batch = {
+            timeout         = "30s"
+            send_batch_size = 1000
+          }
+          memory_limiter = {
+            check_interval         = "1s"
+            limit_percentage       = 75
+            spike_limit_percentage = 15
+          }
         }
 
         exporters = {
           prometheusremotewrite = {
-            endpoint = "${aws_prometheus_workspace.this.prometheus_endpoint}/api/v1/remote_write"
+            endpoint = "${aws_prometheus_workspace.this.prometheus_endpoint}api/v1/remote_write"
             auth = {
               authenticator = "sigv4auth"
             }
-          }
-
-          logging = {
-            loglevel = "debug"
           }
         }
 
         service = {
           extensions = ["sigv4auth", "health_check"]
-
           pipelines = {
             metrics = {
               receivers  = ["prometheus"]
-              processors = ["batch"]
-              exporters  = ["prometheusremotewrite", "logging"]
+              processors = ["memory_limiter", "batch"]  # ── Bug 1 fix: valid HCL, memory_limiter always first
+              exporters  = ["prometheusremotewrite"]
             }
           }
         }
@@ -293,6 +227,8 @@ resource "helm_release" "adot" {
     kubernetes_cluster_role_binding.adot
   ]
 }
+
+
 # ------------ clusterRole to scrap data from nodes and pods for ADOT ------------ #
 resource "kubernetes_cluster_role" "adot" {
   metadata {
