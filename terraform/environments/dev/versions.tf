@@ -34,9 +34,9 @@ terraform {
       source  = "alekc/kubectl"
       version = "~> 2.0"
     }
-    grafana = {
-      source  = "grafana/grafana"
-      version = "~> 3.0" 
-    }
+    #grafana = {
+    #  source  = "grafana/grafana"
+    #  version = "~> 3.0" 
+    #}
   }
 }

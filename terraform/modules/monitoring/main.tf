@@ -87,9 +87,8 @@ resource "aws_prometheus_workspace" "this" {
 }
 
 provider "grafana" {
-  url   = "https://${aws_grafana_workspace.this.endpoint}"
-  # For automation, it's best to use an AWS IAM role or a workspace API key
-  auth  = aws_grafana_workspace_api_key.key.key 
+  url  = aws_grafana_workspace.this.endpoint
+  auth = "aws_grafana_workspace_api_key.key.key"
 }
 
 resource "aws_grafana_workspace_api_key" "key" {
