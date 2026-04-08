@@ -50,6 +50,7 @@ resource "aws_iam_role" "adot_role" {
       Condition = {
         StringEquals = {
           "${local.oidc_issuer}:sub" = "system:serviceaccount:observability:adot-collector"
+          "${local.oidc_issuer}:aud" = "sts.amazonaws.com"
         }
       }
     }]
