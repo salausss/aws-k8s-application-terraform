@@ -121,7 +121,7 @@ resource "helm_release" "adot" {
 
       serviceAccount = {
         create = true
-        name   = "adot-collector"
+        name   = "${var.cluster_name}-${var.env}-adot-collector-sa"
         annotations = {
           "eks.amazonaws.com/role-arn" = aws_iam_role.adot_role.arn
         }
@@ -129,160 +129,158 @@ resource "helm_release" "adot" {
 
       config = {
         extensions = {
-          sigv4auth = {        
+          sigv4auth = {
             region  = var.region
             service = "aps"
           }
-          health_check = {}   
+          health_check = {}
         }
 
         receivers = {
-  prometheus = {
-    config = {
-      scrape_configs = [
-        # ── Nodes: proxy through API server to avoid direct kubelet TLS ──
-        {
-          job_name = "kubernetes-nodes"
-          scheme   = "https"
+          prometheus = {
+            config = {
+              scrape_configs = [
+                {
+                  job_name = "kubernetes-nodes"
+                  scheme   = "https"
 
-          tls_config = {
-            ca_file              = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
-            insecure_skip_verify = false
+                  tls_config = {
+                    ca_file              = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+                    insecure_skip_verify = false
+                  }
+
+                  bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+
+                  kubernetes_sd_configs = [{ role = "node" }]
+
+                  relabel_configs = [
+                    {
+                      target_label = "__address__"
+                      replacement  = "kubernetes.default.svc:443"
+                    },
+                    {
+                      source_labels = ["__meta_kubernetes_node_name"]
+                      regex         = "(.+)"
+                      target_label  = "__metrics_path__"
+                      replacement   = "/api/v1/nodes/$1/proxy/metrics"
+                    },
+                    {
+                      action = "labelmap"
+                      regex  = "__meta_kubernetes_node_label_(.+)"
+                    }
+                  ]
+                },
+
+                {
+                  job_name = "kubernetes-nodes-cadvisor"
+                  scheme   = "https"
+
+                  tls_config = {
+                    ca_file              = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+                    insecure_skip_verify = false
+                  }
+
+                  bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+
+                  kubernetes_sd_configs = [{ role = "node" }]
+
+                  relabel_configs = [
+                    {
+                      target_label = "__address__"
+                      replacement  = "kubernetes.default.svc:443"
+                    },
+                    {
+                      source_labels = ["__meta_kubernetes_node_name"]
+                      regex         = "(.+)"
+                      target_label  = "__metrics_path__"
+                      replacement   = "/api/v1/nodes/$1/proxy/metrics/cadvisor"
+                    },
+                    {
+                      action = "labelmap"
+                      regex  = "__meta_kubernetes_node_label_(.+)"
+                    }
+                  ]
+                },
+
+                {
+                  job_name = "kubernetes-pods"
+
+                  kubernetes_sd_configs = [{ role = "pod" }]
+
+                  relabel_configs = [
+                    {
+                      source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_scrape"]
+                      action        = "keep"
+                      regex         = "true"
+                    },
+                    {
+                      source_labels = ["__address__"]
+                      action        = "drop"
+                      regex         = ".*:9443"
+                    },
+                    {
+                      source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_scheme"]
+                      action        = "replace"
+                      target_label  = "__scheme__"
+                      regex         = "(https?)"
+                    },
+                    {
+                      source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_path"]
+                      action        = "replace"
+                      target_label  = "__metrics_path__"
+                      regex         = "(.+)"
+                    },
+                    {
+                      source_labels = ["__address__", "__meta_kubernetes_pod_annotation_prometheus_io_port"]
+                      action        = "replace"
+                      target_label  = "__address__"
+                      regex         = "([^:]+)(?::\\d+)?;(\\d+)"
+                      replacement   = "$1:$2"
+                    },
+                    {
+                      action = "labelmap"
+                      regex  = "__meta_kubernetes_pod_label_(.+)"
+                    },
+                    {
+                      source_labels = ["__meta_kubernetes_namespace"]
+                      target_label  = "namespace"
+                    },
+                    {
+                      source_labels = ["__meta_kubernetes_pod_name"]
+                      target_label  = "pod"
+                    }
+                  ]
+                }
+              ]
+            }
           }
-
-          bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
-
-          kubernetes_sd_configs = [{ role = "node" }]
-
-          relabel_configs = [
-            # Route through the API server proxy instead of hitting kubelet directly
-            {
-              target_label = "__address__"
-              replacement  = "kubernetes.default.svc:443"
-            },
-            {
-              source_labels = ["__meta_kubernetes_node_name"]
-              regex         = "(.+)"
-              target_label  = "__metrics_path__"
-              replacement   = "/api/v1/nodes/$1/proxy/metrics"
-            },
-            # Preserve node labels
-            {
-              action = "labelmap"
-              regex  = "__meta_kubernetes_node_label_(.+)"
-            }
-          ]
-        },
-
-        # ── Node cAdvisor (container CPU/mem/network) ──
-        {
-          job_name = "kubernetes-nodes-cadvisor"
-          scheme   = "https"
-
-          tls_config = {
-            ca_file              = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
-            insecure_skip_verify = false
-          }
-
-          bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
-
-          kubernetes_sd_configs = [{ role = "node" }]
-
-          relabel_configs = [
-            {
-              target_label = "__address__"
-              replacement  = "kubernetes.default.svc:443"
-            },
-            {
-              source_labels = ["__meta_kubernetes_node_name"]
-              regex         = "(.+)"
-              target_label  = "__metrics_path__"
-              replacement   = "/api/v1/nodes/$1/proxy/metrics/cadvisor"
-            },
-            {
-              action = "labelmap"
-              regex  = "__meta_kubernetes_node_label_(.+)"
-            }
-          ]
-        },
-
-        # ── Pods: only scrape annotated pods, skip webhook ports ──
-        {
-          job_name = "kubernetes-pods"
-
-          kubernetes_sd_configs = [{ role = "pod" }]
-
-          relabel_configs = [
-            # Only scrape pods with prometheus.io/scrape: "true"
-            {
-              source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_scrape"]
-              action        = "keep"
-              regex         = "true"
-            },
-            # Drop webhook/admission ports (9443) — not metrics endpoints
-            {
-              source_labels = ["__address__"]
-              action        = "drop"
-              regex         = ".*:9443"
-            },
-            # Respect prometheus.io/scheme annotation (http or https)
-            {
-              source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_scheme"]
-              action        = "replace"
-              target_label  = "__scheme__"
-              regex         = "(https?)"
-            },
-            # Respect prometheus.io/path annotation
-            {
-              source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_path"]
-              action        = "replace"
-              target_label  = "__metrics_path__"
-              regex         = "(.+)"
-            },
-            # Respect prometheus.io/port annotation
-            {
-              source_labels = ["__address__", "__meta_kubernetes_pod_annotation_prometheus_io_port"]
-              action        = "replace"
-              target_label  = "__address__"
-              regex         = "([^:]+)(?::\\d+)?;(\\d+)"
-              replacement   = "$1:$2"
-            },
-            # Carry over pod labels
-            {
-              action = "labelmap"
-              regex  = "__meta_kubernetes_pod_label_(.+)"
-            },
-            {
-              source_labels = ["__meta_kubernetes_namespace"]
-              target_label  = "namespace"
-            },
-            {
-              source_labels = ["__meta_kubernetes_pod_name"]
-              target_label  = "pod"
-            }
-          ]
         }
-      ]
-    }
-  }
-}
 
+        processors = {
+          batch = {}
+        }
 
         exporters = {
           prometheusremotewrite = {
-            endpoint = "${aws_prometheus_workspace.this.prometheus_endpoint}api/v1/remote_write"
+            endpoint = "${aws_prometheus_workspace.this.prometheus_endpoint}/api/v1/remote_write"
             auth = {
               authenticator = "sigv4auth"
             }
+          }
+
+          logging = {
+            loglevel = "debug"
           }
         }
 
         service = {
           extensions = ["sigv4auth", "health_check"]
+
           pipelines = {
             metrics = {
-              receivers = ["prometheus"]
-              exporters = ["prometheusremotewrite"]
+              receivers  = ["prometheus"]
+              processors = ["batch"]
+              exporters  = ["prometheusremotewrite", "logging"]
             }
           }
         }
@@ -295,7 +293,6 @@ resource "helm_release" "adot" {
     kubernetes_cluster_role_binding.adot
   ]
 }
-
 # ------------ clusterRole to scrap data from nodes and pods for ADOT ------------ #
 resource "kubernetes_cluster_role" "adot" {
   metadata {
