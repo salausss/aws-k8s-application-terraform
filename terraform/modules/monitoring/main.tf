@@ -88,7 +88,7 @@ resource "aws_prometheus_workspace" "this" {
 
 provider "aws" {
   alias  = "grafana"
-  region = "us-east-1" # AMG
+  region = "us-east-1" # AMG is only available in us-east-1.
 }
 
 resource "aws_grafana_workspace" "this" {
@@ -99,6 +99,21 @@ resource "aws_grafana_workspace" "this" {
   permission_type          = "SERVICE_MANAGED"
   role_arn = aws_iam_role.grafana_role.arn
   region = "us-east-1" # Grafana is only available in us-east-1, but can query AMP in other regions
+}
+
+resource "aws_grafana_workspace_data_source" "amp" {
+  provider = aws.grafana
+
+  workspace_id = aws_grafana_workspace.this.id
+  name         = "AMP"
+  type         = "prometheus"
+
+  json_data = jsonencode({
+    httpMethod = "POST"
+    sigV4Auth  = true
+    sigV4Region = var.region   # ap-south-1
+  })
+  secure_json_data = jsonencode({})
 }
 
 # ------------ ADOT Collector Helm Chart for Prometheus Remote Write ------------ #
