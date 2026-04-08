@@ -175,6 +175,52 @@ resource "helm_release" "adot" {
   ]
 
   depends_on = [
-    aws_iam_role_policy_attachment.adot_attach
+    aws_iam_role_policy_attachment.adot_attach,
+    kubernetes_cluster_role_binding.adot
   ]
 }
+
+
+# ------------ clusterRole to scrap data from nodes and pods for ADOT ------------ #
+resource "kubernetes_cluster_role" "adot" {
+  metadata {
+    name = "${var.cluster_name}-${var.env}-adot-collector-role"
+  }
+
+  rule {
+    api_groups = [""]
+    resources  = ["pods", "nodes", "nodes/proxy", "services", "endpoints"]
+    verbs      = ["get", "list", "watch"]
+  }
+
+  rule {
+    api_groups = ["extensions", "apps"]
+    resources  = ["replicasets"]
+    verbs      = ["get", "list", "watch"]
+  }
+
+  rule {
+    api_groups = ["batch"]
+    resources  = ["jobs"]
+    verbs      = ["get", "list", "watch"]
+  }
+}
+
+resource "kubernetes_cluster_role_binding" "adot" {
+  metadata {
+    name = "${var.cluster_name}-${var.env}-adot-collector-binding"
+  }
+
+  role_ref {
+    api_group = "rbac.authorization.k8s.io"
+    kind      = "ClusterRole"
+    name      = kubernetes_cluster_role.adot.metadata[0].name
+  }
+
+  subject {
+    kind      = "ServiceAccount"
+    name      = "adot-collector"
+    namespace = "observability"
+  }
+}
+
