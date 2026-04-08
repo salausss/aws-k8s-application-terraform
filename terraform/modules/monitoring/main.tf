@@ -116,8 +116,8 @@ resource "helm_release" "adot" {
 
       image = {
         repository = "public.ecr.aws/aws-observability/aws-otel-collector"
-        tag        = "latest" 
-      } 
+        tag        = "latest"
+      }
 
       serviceAccount = {
         create = true
@@ -129,24 +129,37 @@ resource "helm_release" "adot" {
 
       config = {
         extensions = {
-          sigv4auth = {
-            region = var.region
+          sigv4auth = {        
+            region  = var.region
             service = "aps"
           }
-        health_check = {} 
+          health_check = {}   
         }
-        
+
         receivers = {
           prometheus = {
             config = {
               scrape_configs = [
                 {
-                  job_name = "kubernetes-nodes"
+                  job_name              = "kubernetes-nodes"
                   kubernetes_sd_configs = [{ role = "node" }]
+                  relabel_configs = [
+                    {
+                      action = "labelmap"
+                      regex  = "__meta_kubernetes_node_label_(.+)"
+                    }
+                  ]
                 },
                 {
-                  job_name = "kubernetes-pods"
+                  job_name              = "kubernetes-pods"
                   kubernetes_sd_configs = [{ role = "pod" }]
+                  relabel_configs = [
+                    {
+                      source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_scrape"]
+                      action        = "keep"
+                      regex         = "true"
+                    }
+                  ]
                 }
               ]
             }
@@ -155,8 +168,7 @@ resource "helm_release" "adot" {
 
         exporters = {
           prometheusremotewrite = {
-            endpoint = "${aws_prometheus_workspace.this.prometheus_endpoint}/api/v1/remote_write"
-
+            endpoint = "${aws_prometheus_workspace.this.prometheus_endpoint}api/v1/remote_write"
             auth = {
               authenticator = "sigv4auth"
             }
@@ -164,12 +176,11 @@ resource "helm_release" "adot" {
         }
 
         service = {
-          extensions = ["sigv4auth", "health_check"] 
-
+          extensions = ["sigv4auth", "health_check"]
           pipelines = {
             metrics = {
-              receivers  = ["prometheus"]
-              exporters  = ["prometheusremotewrite"]
+              receivers = ["prometheus"]
+              exporters = ["prometheusremotewrite"]
             }
           }
         }
@@ -182,48 +193,3 @@ resource "helm_release" "adot" {
     kubernetes_cluster_role_binding.adot
   ]
 }
-
-
-# ------------ clusterRole to scrap data from nodes and pods for ADOT ------------ #
-resource "kubernetes_cluster_role" "adot" {
-  metadata {
-    name = "${var.cluster_name}-${var.env}-adot-collector-role"
-  }
-
-  rule {
-    api_groups = [""]
-    resources  = ["pods", "nodes", "nodes/proxy", "services", "endpoints"]
-    verbs      = ["get", "list", "watch"]
-  }
-
-  rule {
-    api_groups = ["extensions", "apps"]
-    resources  = ["replicasets"]
-    verbs      = ["get", "list", "watch"]
-  }
-
-  rule {
-    api_groups = ["batch"]
-    resources  = ["jobs"]
-    verbs      = ["get", "list", "watch"]
-  }
-}
-
-resource "kubernetes_cluster_role_binding" "adot" {
-  metadata {
-    name = "${var.cluster_name}-${var.env}-adot-collector-binding"
-  }
-
-  role_ref {
-    api_group = "rbac.authorization.k8s.io"
-    kind      = "ClusterRole"
-    name      = kubernetes_cluster_role.adot.metadata[0].name
-  }
-
-  subject {
-    kind      = "ServiceAccount"
-    name      = "adot-collector"
-    namespace = "observability"
-  }
-}
-
