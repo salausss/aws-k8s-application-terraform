@@ -112,6 +112,10 @@ resource "helm_release" "cnpg_operator" {
   version          = "0.22.0"
 
   wait = true
+
+  lifecycle {
+    ignore_changes = all
+  }
 }
 
 # ── CNPG Cluster Manifest ─────────────────────────────────────────
@@ -163,6 +167,9 @@ resource "null_resource" "cnpg_cluster" {
       YAML
     EOF
   }
+  lifecycle {
+    ignore_changes = all
+  }
 }
 
 # ── Scheduled Backup ─────────────────────────────────────────────
@@ -189,4 +196,7 @@ resource "null_resource" "cnpg_scheduled_backup" {
       YAML
     EOF
   }
+    lifecycle {
+        ignore_changes = all
+    }
 }

@@ -107,7 +107,7 @@ module "postgre" {
   region = var.aws_region
   db_namespace      = "db"
   wal_retention_days = 7
-  storage_size = "2Gi"
+  storage_size = "5Gi"
   postgres_instances = 1
   backup_schedule = "0 2 * * *"
 }
