@@ -146,7 +146,7 @@ resource "grafana_user" "admin" {
   email    = "admin@taskflow.local"
   login    = "admin"
   name     = "Admin"
-  password = admin
+  password = "admin"
   is_admin = true
 }
 
