@@ -129,7 +129,7 @@ resource "aws_grafana_workspace" "this" {
 }
 
 resource "grafana_data_source" "amp" {
-  type = "grafana-amazonprometheus-datasource"
+  type = "Prometheus"
   name = "${var.cluster_name}-${var.env}-amp-datasource"
   url  = aws_prometheus_workspace.this.prometheus_endpoint
 
