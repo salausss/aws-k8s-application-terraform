@@ -129,7 +129,7 @@ resource "aws_grafana_workspace" "this" {
 }
 
 resource "grafana_data_source" "amp" {
-  type = "Prometheus"
+  type = "prometheus"
   name = "${var.cluster_name}-${var.env}-amp-datasource"
   url  = aws_prometheus_workspace.this.prometheus_endpoint
 
@@ -137,7 +137,7 @@ resource "grafana_data_source" "amp" {
     httpMethod    = "POST"
     sigV4Auth     = true
     sigV4Region   = "ap-south-1"
-    sigV4AuthType = "workspace-iam-role"
+    #sigV4AuthType = "workspace-iam-role"
   })
 }
 
