@@ -1,1 +1,115 @@
-test
+name: App Deploy Workflow
+
+on:
+push:
+branches: [ "main" ]
+
+env:
+AWS_REGION: ap-south-1
+ECR_REPOSITORY: my-app-repo
+IMAGE_NAME: my-app
+
+jobs:
+ci:
+name: Build, Scan & Push
+runs-on: ubuntu-latest
+
+```
+permissions:
+  id-token: write   # Required for OIDC
+  contents: read
+
+steps:
+
+# 🔹 Checkout Code
+- name: Checkout
+  uses: actions/checkout@v4
+
+# 🔹 Setup GitHub CodeQL (SAST)
+- name: Initialize CodeQL
+  uses: github/codeql-action/init@v3
+  with:
+    languages: javascript  # change based on your stack
+
+- name: Autobuild
+  uses: github/codeql-action/autobuild@v3
+
+- name: Perform CodeQL Analysis
+  uses: github/codeql-action/analyze@v3
+
+# 🔹 Dependency Scan (optional - example using npm audit)
+- name: Dependency Scan
+  run: |
+    if [ -f package.json ]; then
+      npm install
+      npm audit --audit-level=high
+    fi
+
+# 🔹 Configure AWS Credentials using OIDC
+- name: Configure AWS credentials
+  uses: aws-actions/configure-aws-credentials@v4
+  with:
+    role-to-assume: arn:aws:iam::<ACCOUNT_ID>:role/<GITHUB_OIDC_ROLE>
+    aws-region: ${{ env.AWS_REGION }}
+
+# 🔹 Login to Amazon ECR
+- name: Login to ECR
+  uses: aws-actions/amazon-ecr-login@v2
+
+# 🔹 Set Image Tag (commit SHA)
+- name: Set Image Tag
+  run: echo "IMAGE_TAG=${GITHUB_SHA}" >> $GITHUB_ENV
+
+# 🔹 Build Docker Image
+- name: Build Docker Image
+  run: |
+    docker build -t $IMAGE_NAME:$IMAGE_TAG .
+
+# 🔹 Install Trivy
+- name: Install Trivy
+  run: |
+    sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+    wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+    echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+    sudo apt-get update
+    sudo apt-get install -y trivy
+
+# 🔹 Scan Docker Image
+- name: Scan Image with Trivy
+  run: |
+    trivy image --exit-code 1 --severity CRITICAL,HIGH $IMAGE_NAME:$IMAGE_TAG
+
+# 🔹 Tag & Push to ECR
+- name: Push to ECR
+  run: |
+    ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+    ECR_URI=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY
+
+    docker tag $IMAGE_NAME:$IMAGE_TAG $ECR_URI:$IMAGE_TAG
+    docker push $ECR_URI:$IMAGE_TAG
+
+    echo "ECR_URI=$ECR_URI" >> $GITHUB_ENV
+
+# 🔹 Clone GitOps Repo
+- name: Clone GitOps Repo
+  run: |
+    git clone https://github.com/<ORG>/<GITOPS_REPO>.git
+    cd <GITOPS_REPO>
+
+# 🔹 Update Kubernetes Manifest
+- name: Update Image Tag in Manifest
+  run: |
+    cd <GITOPS_REPO>/dev   # change based on env
+    sed -i "s|image: .*|image: $ECR_URI:$IMAGE_TAG|" deployment.yaml
+
+# 🔹 Commit & Push Changes
+- name: Commit and Push Changes
+  run: |
+    cd <GITOPS_REPO>
+    git config user.name "github-actions"
+    git config user.email "actions@github.com"
+
+    git add .
+    git commit -m "Update image to $IMAGE_TAG" || echo "No changes to commit"
+    git push
+```
