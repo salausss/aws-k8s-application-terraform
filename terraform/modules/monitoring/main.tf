@@ -99,11 +99,16 @@ provider "grafana" {
   url  = "https://${aws_grafana_workspace.this.endpoint}"
   auth = aws_grafana_workspace_api_key.key.key
 }
+
+resource "time_rotating" "grafana_key" {
+  rotation_days = 7
+}
+
 resource "aws_grafana_workspace_api_key" "key" {
   provider     = aws.grafana
-  key_name     = "terraform-automation"
+  key_name     = "terraform-${time_rotating.grafana_key.id}"
   key_role     = "ADMIN"
-  seconds_to_live = 3600
+  seconds_to_live = 604800
   workspace_id = aws_grafana_workspace.this.id
 }
 
