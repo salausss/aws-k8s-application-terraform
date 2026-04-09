@@ -143,7 +143,7 @@ resource "null_resource" "cnpg_cluster" {
               eks.amazonaws.com/role-arn: ${aws_iam_role.cnpg.arn}
         storage:
           size: ${var.storage_size}
-          storageClass: gp3
+          storageClass: gp2
         bootstrap:
           initdb:
             database: taskflow
