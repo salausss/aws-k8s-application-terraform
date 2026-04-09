@@ -121,11 +121,33 @@ resource "aws_grafana_workspace" "this" {
   provider = aws.grafana 
   name                     = "${var.cluster_name}-${var.env}-grafana"
   account_access_type      = "CURRENT_ACCOUNT"
-  authentication_providers = ["AWS_SSO"]
+  authentication_providers = ["SAML"] 
   permission_type          = "SERVICE_MANAGED"
   role_arn = aws_iam_role.grafana_role.arn
   region = "us-east-1" # Grafana is only available in us-east-1, but can query AMP in other regions
   data_sources = ["PROMETHEUS"]
+}
+
+# ── Enable SAML with basic config ──
+resource "aws_grafana_workspace_saml_configuration" "this" {
+  provider           = aws.grafana
+  workspace_id       = aws_grafana_workspace.this.id
+  admin_role_values  = ["admin"]
+  editor_role_values = ["editor"]
+
+  idp_metadata_xml = <<-EOF
+    <md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata">
+    </md:EntityDescriptor>
+  EOF
+}
+
+# ── Create local admin user ──
+resource "grafana_user" "admin" {
+  email    = "admin@taskflow.local"
+  login    = "admin"
+  name     = "Admin"
+  password = admin
+  is_admin = true
 }
 
 resource "grafana_data_source" "amp" {
