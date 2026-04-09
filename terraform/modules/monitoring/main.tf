@@ -128,9 +128,16 @@ resource "aws_grafana_workspace" "this" {
   data_sources = ["PROMETHEUS"]
 }
 
+resource "aws_grafana_workspace_plugin" "amp" {
+  provider     = aws.grafana
+  workspace_id = aws_grafana_workspace.this.id
+  plugin_id    = "grafana-amazonprometheus-datasource"
+  plugin_version = "2.0.0"
+}
+
 resource "grafana_data_source" "amp" {
-  type = "prometheus"
-  name = "Amazon Managed Prometheus"
+  type = "grafana-amazonprometheus-datasource"
+  name = "${var.cluster_name}-${var.env}-amp-datasource"
   url  = aws_prometheus_workspace.this.prometheus_endpoint
 
   json_data_encoded = jsonencode({
@@ -139,6 +146,7 @@ resource "grafana_data_source" "amp" {
     sigV4Region   = var.region # ap-south-1
     #sigV4AuthType = "default"
   })
+  depends_on = [aws_grafana_workspace_plugin.amp] 
 }
 
 # ------------ ADOT Collector Helm Chart for Prometheus Remote Write ------------ #
