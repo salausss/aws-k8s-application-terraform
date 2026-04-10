@@ -8,7 +8,6 @@ resource "helm_release" "argocd" {
   create_namespace = true
   wait             = true        # wait for all pods to be Ready
   wait_for_jobs    = true
-
   skip_crds = false
 
   atomic           = true
@@ -69,10 +68,6 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: app
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
 YAML
 }
 
