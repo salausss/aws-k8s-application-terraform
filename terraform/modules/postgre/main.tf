@@ -119,6 +119,10 @@ resource "helm_release" "cnpg_operator" {
   lifecycle {
     ignore_changes = all
   }
+  provisioner "local-exec" {
+    when    = destroy
+    command = "kubectl delete crd -l app.kubernetes.io/name=cloudnative-pg --ignore-not-found"
+  }
 }
 
 # ── CNPG Cluster Manifest ─────────────────────────────────────────
@@ -170,6 +174,16 @@ resource "null_resource" "cnpg_cluster" {
       YAML
     EOF
   }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOF
+      kubectl delete cluster postgres -n ${self.triggers.db_namespace} --ignore-not-found
+      kubectl delete pvc -l cnpg.io/cluster=postgres -n ${self.triggers.db_namespace} --ignore-not-found
+      kubectl delete pvc postgres-1 -n ${self.triggers.db_namespace} --ignore-not-found
+    EOF
+  }
+
   lifecycle {
     ignore_changes = all
   }
