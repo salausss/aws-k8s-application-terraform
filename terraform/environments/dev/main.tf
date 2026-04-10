@@ -111,3 +111,13 @@ module "postgre" {
   postgres_instances = 1
   backup_schedule = "0 2 * * *"
 }
+
+module "guardduty" {
+  source = "./modules/guardduty"
+
+  project     = var.project       
+  environment = var.environment       
+  alert_email = "salauss00@gmail.com"  
+
+  tags = local.common_tags
+}
