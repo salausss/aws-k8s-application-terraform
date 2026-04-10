@@ -113,11 +113,9 @@ module "postgre" {
 }
 
 module "guardduty" {
-  source = "./modules/guardduty"
+  source = "../../modules/guardduty"
 
-  project     = var.project       
+  project     = var.project_name
   environment = var.environment       
   alert_email = "salauss00@gmail.com"  
-
-  tags = local.common_tags
 }

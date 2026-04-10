@@ -20,14 +20,12 @@ resource "aws_guardduty_detector" "this" {
       }
     }
   }
-
-  tags = var.tags
 }
 
 # SNS topic for GuardDuty findings
 resource "aws_sns_topic" "guardduty_findings" {
   name = "${var.project}-${var.environment}-guardduty-findings"
-  tags = var.tags
+  
 }
 
 resource "aws_sns_topic_policy" "guardduty_findings" {
@@ -58,8 +56,6 @@ resource "aws_cloudwatch_event_rule" "guardduty_findings" {
       severity = [{ numeric = [">=", 4] }]
     }
   })
-
-  tags = var.tags
 }
 
 resource "aws_cloudwatch_event_target" "guardduty_sns" {
@@ -80,7 +76,6 @@ resource "aws_sns_topic_subscription" "email" {
 resource "aws_s3_bucket" "guardduty_findings" {
   bucket        = "${var.project}-${var.environment}-guardduty-findings-${data.aws_caller_identity.current.account_id}"
   force_destroy = true
-  tags          = var.tags
 }
 
 resource "aws_s3_bucket_public_access_block" "guardduty_findings" {
@@ -106,7 +101,6 @@ resource "aws_kms_key" "guardduty" {
   description             = "KMS key for GuardDuty findings export"
   deletion_window_in_days = 7
   enable_key_rotation     = true
-  tags                    = var.tags
 }
 
 resource "aws_kms_key_policy" "guardduty" {

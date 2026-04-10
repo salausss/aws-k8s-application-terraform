@@ -10,8 +10,3 @@ variable "alert_email" {
   default = ""
   description = "Email address to receive HIGH/MEDIUM finding alerts. Leave empty to skip."
 }
-
-variable "tags" {
-  type    = map(string)
-  default = {}
-}
