@@ -104,7 +104,7 @@ resource "aws_iam_role_policy_attachment" "cnpg_s3" {
 
 # ── Install CNPG Operator via Helm ───────────────────────────────
 resource "helm_release" "cnpg_operator" {
-  name             = "${var.cluster_name}-${var.environment}-cnpg"
+  name             = "cnpg"
   repository       = "https://cloudnative-pg.github.io/charts"
   chart            = "cloudnative-pg"
   namespace        = "cnpg-system"
