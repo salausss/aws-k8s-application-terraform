@@ -139,6 +139,10 @@ resource "grafana_data_source" "amp" {
     sigV4Region   = "ap-south-1"
     #sigV4AuthType = "workspace-iam-role"
   })
+  
+  lifecycle {
+    ignore_changes = all
+  }
 }
 
 # ------------ ADOT Collector Helm Chart for Prometheus Remote Write ------------ #
