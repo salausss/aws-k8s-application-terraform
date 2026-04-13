@@ -119,7 +119,7 @@ resource "helm_release" "lbc" {
 
       serviceAccount = {
         create = false
-        name   = kubernetes_service_account.lbc.metadata[0].name
+        name   = kubernetes_service_account_v1.lbc.metadata[0].name
       }
 
       resources = {
@@ -152,7 +152,7 @@ resource "helm_release" "lbc" {
   ]
 
   depends_on = [
-    kubernetes_service_account.lbc,
+    kubernetes_service_account_v1.lbc,
     aws_iam_role_policy_attachment.lbc,
   ]
 }

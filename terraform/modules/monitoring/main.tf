@@ -276,7 +276,7 @@ resource "helm_release" "adot" {
 }
 
 # ------------ clusterRole to scrap data from nodes and pods for ADOT ------------ #
-resource "kubernetes_cluster_role" "adot" {
+resource "kubernetes_cluster_role_v1" "adot" {
   metadata {
     name = "${var.cluster_name}-${var.env}-adot-collector-role"
   }
@@ -300,7 +300,7 @@ resource "kubernetes_cluster_role" "adot" {
   }
 }
 
-resource "kubernetes_cluster_role_binding" "adot" {
+resource "kubernetes_cluster_role_binding_v1" "adot" {
   metadata {
     name = "${var.cluster_name}-${var.env}-adot-collector-binding"
   }
@@ -308,7 +308,7 @@ resource "kubernetes_cluster_role_binding" "adot" {
   role_ref {
     api_group = "rbac.authorization.k8s.io"
     kind      = "ClusterRole"
-    name      = kubernetes_cluster_role.adot.metadata[0].name
+    name      = kubernetes_cluster_role_v1.adot.metadata[0].name
   }
 
   subject {
