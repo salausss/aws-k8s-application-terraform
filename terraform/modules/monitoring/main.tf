@@ -271,7 +271,7 @@ resource "helm_release" "adot" {
 
   depends_on = [
     aws_iam_role_policy_attachment.adot_attach,
-    kubernetes_cluster_role_binding.adot
+    kubernetes_cluster_role_binding_v1.adot
   ]
 }
 
