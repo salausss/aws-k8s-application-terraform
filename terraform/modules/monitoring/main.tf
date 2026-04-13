@@ -147,7 +147,9 @@ resource "helm_release" "adot" {
   create_namespace = true
   atomic = true
   cleanup_on_fail = true
-  replace = true
+  lifecycle {
+    ignore_changes = all
+  }
 
   values = [
     yamlencode({
