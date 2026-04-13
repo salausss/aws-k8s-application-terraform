@@ -128,7 +128,7 @@ resource "grafana_data_source" "amp" {
     httpMethod    = "POST"
     sigV4Auth     = true
     sigV4Region   = "ap-south-1"
-    #sigV4AuthType = "workspace-iam-role"
+    sigV4AuthType = "workspace-iam-role"
   })
   lifecycle {
     ignore_changes = all
