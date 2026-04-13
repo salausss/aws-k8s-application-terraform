@@ -19,7 +19,8 @@ output "cluster_ca_certificate" {
 
 output "oidc_provider_url" {
   description = "The OIDC provider URL for the cluster, used for IAM Roles for Service Accounts (IRSA)."
-  value       = aws_eks_cluster.primary.identity[0].oidc[0].issuer
+  #value       = aws_eks_cluster.primary.identity[0].oidc[0].issuer
+  value = replace(aws_eks_cluster.primary.identity[0].oidc[0].issuer, "https://", "")   
 }
 
 output "oidc_provider_arn" {

@@ -270,7 +270,6 @@ resource "helm_release" "adot" {
   ]
 }
 
-
 # ------------ clusterRole to scrap data from nodes and pods for ADOT ------------ #
 resource "kubernetes_cluster_role" "adot" {
   metadata {
