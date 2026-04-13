@@ -145,7 +145,10 @@ resource "helm_release" "adot" {
   namespace  = "observability"
 
   create_namespace = true
-
+  atomic = true
+  cleanup_on_fail = true
+  replace = true
+  
   values = [
     yamlencode({
       mode = "daemonset"
