@@ -57,7 +57,7 @@ MANIFEST
     EOT
   }
   lifecycle {
-    ignore_changes = [all]
+    ignore_changes = all
   }
 }
 

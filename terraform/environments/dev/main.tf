@@ -83,7 +83,7 @@ module "WAF" {
   source = "../../modules/waf"
   project_name = var.project_name
   env = var.environment
-  alb_arn = module.argocd.alb_arn
+  alb_arn = module.application_deploy.alb_arn
   rate_limit     = 1000
   enable_logging = true
 }
