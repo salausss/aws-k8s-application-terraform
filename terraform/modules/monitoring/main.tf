@@ -31,19 +31,6 @@ resource "aws_iam_role_policy_attachment" "grafana_amp_access" {
 # ------------ OIDC details from EKS for ADOT Role ------------ #
 data "aws_caller_identity" "current" {}
 
-data "aws_eks_cluster" "primary" {
-  name = var.cluster_name
-}
-
-data "aws_iam_openid_connect_provider" "eks" {
-  url = data.aws_eks_cluster.primary.identity[0].oidc[0].issuer
-}
-
-locals {
-  oidc_issuer       = replace(data.aws_eks_cluster.primary.identity[0].oidc[0].issuer, "https://", "")
-  oidc_provider_arn = data.aws_iam_openid_connect_provider.eks.arn
-}
-
 # ------------ ADOT Role & Policy for Prometheus remote write ------------ #
 resource "aws_iam_role" "adot_role" {
   name = "${var.cluster_name}-${var.env}-adot-role"
@@ -53,7 +40,7 @@ resource "aws_iam_role" "adot_role" {
     Statement = [{
       Effect = "Allow"
       Principal = {
-        Federated = local.oidc_provider_arn
+        Federated = var.oidc_provider_arn
       }
       Action = "sts:AssumeRoleWithWebIdentity"
       Condition = {
@@ -106,10 +93,13 @@ resource "time_rotating" "grafana_key" {
 
 resource "aws_grafana_workspace_api_key" "key" {
   provider     = aws.grafana
-  key_name     = "terraform-${time_rotating.grafana_key.id}"
+  key_name     = "${var.cluster_name}-${var.env}-terraform-grafana-key"
   key_role     = "ADMIN"
   seconds_to_live = 604800
   workspace_id = aws_grafana_workspace.this.id
+  lifecycle {
+    replace_triggered_by = [time_rotating.grafana_key]  # rotation trigger
+  }
 }
 
 provider "aws" {
