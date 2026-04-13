@@ -40,3 +40,7 @@ output "cluster_security_group_id" {
 output "node_group_role" {
   value       = aws_iam_role.node_group_role.arn
 }
+
+output "node_security_group_id" {
+  value = aws_eks_cluster.node_groups[0].resources[0].auto_scaling_groups[0].security_groups[0]
+}
