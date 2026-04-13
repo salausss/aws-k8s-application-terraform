@@ -93,11 +93,12 @@ resource "time_rotating" "grafana_key" {
 
 resource "aws_grafana_workspace_api_key" "key" {
   provider     = aws.grafana
-  key_name     = "${var.cluster_name}-${var.env}-terraform-grafana-key"
+  key_name     = "${var.cluster_name}-${var.env}-terraform-grafana-key-${time_rotating.grafana_key.id}"
   key_role     = "ADMIN"
   seconds_to_live = 604800
   workspace_id = aws_grafana_workspace.this.id
   lifecycle {
+    create_before_destroy = true
     replace_triggered_by = [time_rotating.grafana_key]  # rotation trigger
   }
 }
