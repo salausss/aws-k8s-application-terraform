@@ -82,5 +82,5 @@ resource "kubernetes_storage_class_v1" "gp2_retain" {
     type      = "gp2"
     encrypted = "true"
     kmsKeyId  = var.kms_key_arn                     
-  }
+}
 }

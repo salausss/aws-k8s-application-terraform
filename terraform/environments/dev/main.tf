@@ -67,7 +67,7 @@ module "storage" {
   vpc_id                 = module.vpc.vpc_id
   private_subnet_ids     = module.vpc.private_subnet_ids
   node_security_group_id = module.eks.cluster_security_group_id
-  kmsKeyId = module.kms.key_arn
+  kms_key_arn = module.kms.key_arn
 }
 
 #module "k8s" {
