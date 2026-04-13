@@ -25,7 +25,7 @@ output "oidc_provider_url" {
 
 output "oidc_provider_arn" {
   description = "OIDC provider ARN for IRSA"
-  value       = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${replace(aws_eks_cluster.primary.identity[0].oidc[0].issuer, "https://", "")}"
+  value       = "aws_iam_openid_connect_provider.this.arn"
 }
 
 output "configure_kubectl" {

@@ -148,7 +148,7 @@ resource "helm_release" "adot" {
   atomic = true
   cleanup_on_fail = true
   replace = true
-  
+
   values = [
     yamlencode({
       mode = "daemonset"
