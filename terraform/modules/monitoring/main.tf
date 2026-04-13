@@ -162,7 +162,13 @@ resource "helm_release" "adot" {
           "eks.amazonaws.com/role-arn" = aws_iam_role.adot_role.arn
         }
       }
-
+      tolerations = [
+      {
+        key      = "type"
+        operator = "Exists"    # matches both "application" and "database" values
+        effect   = "NoSchedule"
+        }
+      ]
       config = {
         extensions = {
           sigv4auth    = { region = var.region, service = "aps" }
