@@ -31,7 +31,16 @@ resource "time_sleep" "wait_for_argocd_crds" {
   create_duration = "30s"
 }
 
-#--------- Create Application Through ArgoCD -------------------#
+resource "helm_release" "vpa" {
+  name       = "vpa"
+  repository = "https://charts.fairwinds.com/stable"
+  chart      = "vpa"
+
+  namespace        = "kube-system"
+  create_namespace = false
+}
+
+#--------- Create initialApplication once and Managed through ArgoCD -------------------#
 
 resource "null_resource" "taskflow_app" {
   depends_on = [time_sleep.wait_for_argocd_crds]
@@ -46,6 +55,9 @@ resource "null_resource" "taskflow_app" {
 ${local.taskflow_manifest}
 MANIFEST
     EOT
+  }
+  lifecycle {
+    ignore_changes = [all]
   }
 }
 
