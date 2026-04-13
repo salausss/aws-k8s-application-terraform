@@ -315,3 +315,22 @@ resource "kubernetes_cluster_role_binding" "adot" {
   }
 }
 
+# ------- Metrics setup for HPA ------------------- #
+resource "helm_release" "metrics_server" {
+  name       = "${var.cluster_name}-${var.env}-metrics-server"
+  repository = "https://kubernetes-sigs.github.io/metrics-server/"
+  chart      = "metrics-server"
+
+  namespace        = "kube-system"
+  create_namespace = false
+
+  # Important for EKS / self-managed clusters
+  values = [
+    yamlencode({
+      args = [
+        "--kubelet-insecure-tls",
+        "--kubelet-preferred-address-types=InternalIP"
+      ]
+    })
+  ]
+}
