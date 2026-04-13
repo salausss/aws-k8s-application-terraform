@@ -57,7 +57,7 @@ resource "kubernetes_storage_class_v1" "efs" {
     gidRangeStart    = "1000"
     gidRangeEnd      = "2000"
     basePath         = "/taskflow"
-    kmsKeyId         = var.kms_key_arn
+    #kmsKeyId         = var.kms_key_arn
   }
 
   depends_on = [aws_efs_mount_target.this]
@@ -81,6 +81,6 @@ resource "kubernetes_storage_class_v1" "gp2_retain" {
   parameters = {
     type      = "gp2"
     encrypted = "true"
-    kmsKeyId  = var.kms_key_arn                     
+    #kmsKeyId  = var.kms_key_arn                     
 }
 }
