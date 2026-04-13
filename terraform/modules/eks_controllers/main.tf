@@ -81,7 +81,7 @@ resource "aws_iam_role_policy_attachment" "lbc" {
 # KUBERNETES SERVICE ACCOUNT (IRSA-annotated)
 # ─────────────────────────────────────────────────────────────
 
-resource "kubernetes_service_account" "lbc" {
+resource "kubernetes_service_account_v1" "lbc" {
   metadata {
     name      = "aws-load-balancer-controller"
     namespace = "kube-system"
