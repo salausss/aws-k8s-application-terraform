@@ -75,8 +75,8 @@ module "storage" {
 #  env = var.environment
 #}
 
-module "argocd" {
-  source = "../../modules/argocd"
+module "application_deploy" {
+  source = "../../modules/app_deploy"
 }
 
 module "WAF" {
