@@ -56,6 +56,7 @@ resource "aws_secretsmanager_secret_version" "taskflow_db" {
     host     = "PLACEHOLDER_REPLACE_ME"
     port     = "5432"
     dbname   = "taskflow"
+    REPLICATOR_PASSWORD = "PLACEHOLDER_REPLACE_ME"
   })
 
   lifecycle {
@@ -519,6 +520,7 @@ spec:
             objectAlias: postgres_host
           - path: port
             objectAlias: postgres_port
+      
   secretObjects:
     - secretName: taskflow-app-secrets
       type: Opaque
@@ -567,6 +569,8 @@ spec:
             objectAlias: postgres_user
           - path: dbname
             objectAlias: postgres_db
+          - path: replicator_password
+            objectAlias: REPLICATOR_PASSWORD
   secretObjects:
     - secretName: taskflow-db-credentials
       type: Opaque
@@ -577,6 +581,8 @@ spec:
           key: POSTGRES_USER
         - objectName: postgres_db
           key: POSTGRES_DB
+        - objectName: replicator_password
+          key: REPLICATOR_PASSWORD
 EOF
     SCRIPT
   }
