@@ -60,6 +60,16 @@ module "alb_controller" {
   vpc_id           = module.vpc.vpc_id
 }
 
+module "efs" {
+  source = "../../modules/efs"
+
+  cluster_name           = module.eks.cluster_name
+  environment            = var.environment
+  vpc_id                 = module.vpc.vpc_id
+  private_subnet_ids     = module.vpc.private_subnets
+  node_security_group_id = module.eks.node_security_group_id
+}
+
 #module "k8s" {
 #  source = "../../modules/k8s"
 #  env = var.environment
