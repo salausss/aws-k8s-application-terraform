@@ -139,7 +139,6 @@ resource "grafana_data_source" "amp" {
     sigV4Region   = "ap-south-1"
     #sigV4AuthType = "workspace-iam-role"
   })
-  
   lifecycle {
     ignore_changes = all
   }

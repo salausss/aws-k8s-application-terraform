@@ -98,19 +98,19 @@ module "observability" {
   region = var.aws_region
 }
 
-module "postgre" {
-  source = "../../modules/postgre"
-  cluster_name = module.eks.cluster_name
-  environment = var.environment
-  oidc_provider_arn = module.eks.oidc_provider_arn
-  oidc_provider_url = module.eks.oidc_provider_url
-  region = var.aws_region
-  db_namespace      = "db"
-  wal_retention_days = 7
-  storage_size = "5Gi"
-  postgres_instances = 1
-  backup_schedule = "0 2 * * *"
-}
+#module "postgre" {
+#  source = "../../modules/postgre"
+#  cluster_name = module.eks.cluster_name
+#  environment = var.environment
+#  oidc_provider_arn = module.eks.oidc_provider_arn
+#  oidc_provider_url = module.eks.oidc_provider_url
+#  region = var.aws_region
+#  db_namespace      = "db"
+#  wal_retention_days = 7
+#  storage_size = "5Gi"
+#  postgres_instances = 1
+#  backup_schedule = "0 2 * * *"
+#}
 
 module "guardduty" {
   source = "../../modules/guardduty"
