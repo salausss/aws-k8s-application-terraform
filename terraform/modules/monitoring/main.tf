@@ -95,7 +95,7 @@ resource "aws_grafana_workspace_api_key" "key" {
   provider     = aws.grafana
   key_name     = "${var.cluster_name}-${var.env}-terraform-grafana-key-${time_rotating.grafana_key.id}"
   key_role     = "ADMIN"
-  seconds_to_live = 604800
+  seconds_to_live = 6048000
   workspace_id = aws_grafana_workspace.this.id
   lifecycle {
     create_before_destroy = true
@@ -133,6 +133,7 @@ resource "grafana_data_source" "amp" {
   lifecycle {
     ignore_changes = all
   }
+  depends_on = [aws_grafana_workspace_api_key.key]
 }
 
 # ------------ ADOT Collector Helm Chart for Prometheus Remote Write ------------ #
