@@ -106,6 +106,7 @@ module "observability" {
   cluster_name = module.eks.cluster_name
   env = var.environment
   region = var.aws_region
+  oidc_provider_url = module.eks.oidc_provider_url
 }
 
 #module "postgre" {

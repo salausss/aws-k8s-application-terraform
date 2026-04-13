@@ -1,11 +1,11 @@
-    terraform {
-    required_providers {
-        grafana = {
-        source  = "grafana/grafana"
-        version = "~> 4.0"
-        }
+terraform {
+  required_providers {
+      grafana = {
+      source  = "grafana/grafana"
+      version = "~> 4.0"
+      }
     }
-    }
+  }
 
 # ------------ IAM Role for Grafana ------------ #
 resource "aws_iam_role" "grafana_role" {
@@ -58,8 +58,8 @@ resource "aws_iam_role" "adot_role" {
       Action = "sts:AssumeRoleWithWebIdentity"
       Condition = {
         StringEquals = {
-          "${local.oidc_issuer}:sub" = "system:serviceaccount:observability:${var.cluster_name}-${var.env}-adot-collector-sa"
-          "${local.oidc_issuer}:aud" = "sts.amazonaws.com"
+          "${var.oidc_provider_url}:sub" = "system:serviceaccount:observability:${var.cluster_name}-${var.env}-adot-collector-sa"
+          "${var.oidc_provider_url}:aud" = "sts.amazonaws.com"
         }
       }
     }]
@@ -67,7 +67,7 @@ resource "aws_iam_role" "adot_role" {
 }
 
 resource "aws_iam_policy" "adot_amp" {
-  name = "${var.cluster_name}-adot-amp-policy"
+  name = "${var.cluster_name}-${var.env}-adot-amp-policy"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -229,7 +229,7 @@ resource "helm_release" "adot" {
           }
         }
 
-        # ── Bug 2 fix: define processors before referencing them ──
+        #define processors before referencing them ──
         processors = {
           batch = {
             timeout         = "30s"
@@ -256,7 +256,7 @@ resource "helm_release" "adot" {
           pipelines = {
             metrics = {
               receivers  = ["prometheus"]
-              processors = ["memory_limiter", "batch"]  # ── Bug 1 fix: valid HCL, memory_limiter always first
+              processors = ["memory_limiter", "batch"]  
               exporters  = ["prometheusremotewrite"]
             }
           }
@@ -315,7 +315,7 @@ resource "kubernetes_cluster_role_binding" "adot" {
   }
 }
 
-# ------- Metrics setup for HPA ------------------- #
+# ------- Metrics setup for HPA & VPA ------------------- #
 resource "helm_release" "metrics_server" {
   name       = "${var.cluster_name}-${var.env}-metrics-server"
   repository = "https://kubernetes-sigs.github.io/metrics-server/"
