@@ -147,9 +147,9 @@ resource "helm_release" "adot" {
   create_namespace = true
   atomic = true
   cleanup_on_fail = true
-  lifecycle {
-    ignore_changes = all
-  }
+  #lifecycle {
+  #  ignore_changes = all
+  #}
 
   values = [
     yamlencode({
@@ -174,6 +174,14 @@ resource "helm_release" "adot" {
         effect   = "NoSchedule"
         }
       ]
+      extraEnvs = [
+        {
+          name = "K8S_NODE_NAME"
+          valueFrom = {
+            fieldRef = { fieldPath = "spec.nodeName" }
+          }
+        }
+      ]
       config = {
         extensions = {
           sigv4auth    = { region = var.region, service = "aps" }
@@ -194,6 +202,11 @@ resource "helm_release" "adot" {
                   }
                   kubernetes_sd_configs = [{ role = "node" }]
                   relabel_configs = [
+                    {
+                      source_labels = ["__meta_kubernetes_node_name"]
+                      action        = "keep"
+                      regex         = "$K8S_NODE_NAME"
+                    },
                     { target_label = "__address__", replacement = "kubernetes.default.svc:443" },
                     { source_labels = ["__meta_kubernetes_node_name"], regex = "(.+)", target_label = "__metrics_path__", replacement = "/api/v1/nodes/$1/proxy/metrics" },
                     { action = "labelmap", regex = "__meta_kubernetes_node_label_(.+)" }
@@ -209,6 +222,11 @@ resource "helm_release" "adot" {
                   }
                   kubernetes_sd_configs = [{ role = "node" }]
                   relabel_configs = [
+                    {
+                      source_labels = ["__meta_kubernetes_node_name"]
+                      action        = "keep"
+                      regex         = "$K8S_NODE_NAME"
+                    },
                     { target_label = "__address__", replacement = "kubernetes.default.svc:443" },
                     { source_labels = ["__meta_kubernetes_node_name"], regex = "(.+)", target_label = "__metrics_path__", replacement = "/api/v1/nodes/$1/proxy/metrics/cadvisor" },
                     { action = "labelmap", regex = "__meta_kubernetes_node_label_(.+)" }
