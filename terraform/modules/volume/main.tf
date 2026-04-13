@@ -57,7 +57,30 @@ resource "kubernetes_storage_class_v1" "efs" {
     gidRangeStart    = "1000"
     gidRangeEnd      = "2000"
     basePath         = "/taskflow"
+    kmsKeyId         = var.kms_key_arn
   }
 
   depends_on = [aws_efs_mount_target.this]
+}
+
+
+# ── EBS gp2 with Retain (for Postgres StatefulSet) ───────────────
+resource "kubernetes_storage_class_v1" "gp2_retain" {
+  metadata {
+    name = "gp2-retain"
+    annotations = {
+      "storageclass.kubernetes.io/is-default-class" = "false"
+    }
+  }
+
+  storage_provisioner    = "ebs.csi.aws.com"
+  reclaim_policy         = "Retain"
+  volume_binding_mode    = "WaitForFirstConsumer"   # waits for pod scheduling, picks correct AZ
+  allow_volume_expansion = true
+
+  parameters = {
+    type      = "gp2"
+    encrypted = "true"
+    kmsKeyId  = var.kms_key_arn                     
+  }
 }
