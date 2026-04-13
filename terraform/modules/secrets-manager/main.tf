@@ -570,7 +570,7 @@ spec:
           - path: dbname
             objectAlias: postgres_db
           - path: replicator_password
-            objectAlias: REPLICATOR_PASSWORD
+            objectAlias: replicator_password
   secretObjects:
     - secretName: taskflow-db-credentials
       type: Opaque
@@ -582,7 +582,7 @@ spec:
         - objectName: postgres_db
           key: POSTGRES_DB
         - objectName: replicator_password
-          key: REPLICATOR_PASSWORD
+          key: replicator_password
 EOF
     SCRIPT
   }
