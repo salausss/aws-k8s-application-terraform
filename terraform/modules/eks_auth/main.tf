@@ -133,7 +133,7 @@ resource "kubernetes_cluster_role_binding_v1" "admin" {
 # -------------------------------------------------------
 # Creating Namespaces
 # -------------------------------------------------------
-resource "kubernetes_namespace" "admin_developer" {
+resource "kubernetes_namespace_v1" "admin_developer" {
   for_each = toset(var.developer_namespaces)
 
   metadata {
@@ -144,7 +144,7 @@ resource "kubernetes_namespace" "admin_developer" {
 # -------------------------------------------------------
 # Developer ClusterRole (read-only cluster-wide)
 # -------------------------------------------------------
-resource "kubernetes_cluster_role" "developer_readonly" {
+resource "kubernetes_cluster_role_v1" "developer_readonly" {
   metadata {
     name = "eks-developer-readonly"
   }
@@ -162,7 +162,7 @@ resource "kubernetes_cluster_role" "developer_readonly" {
   }
 }
 
-resource "kubernetes_cluster_role_binding" "developer_readonly" {
+resource "kubernetes_cluster_role_binding_v1" "developer_readonly" {
   metadata {
     name = "eks-developer-readonly-binding"
   }
@@ -170,7 +170,7 @@ resource "kubernetes_cluster_role_binding" "developer_readonly" {
   role_ref {
     api_group = "rbac.authorization.k8s.io"
     kind      = "ClusterRole"
-    name      = kubernetes_cluster_role.developer_readonly.metadata[0].name
+    name      = kubernetes_cluster_role_v1.developer_readonly.metadata[0].name
   }
 
   subject {
@@ -183,7 +183,7 @@ resource "kubernetes_cluster_role_binding" "developer_readonly" {
 # -------------------------------------------------------
 # Developer Role (namespace-scoped)
 # -------------------------------------------------------
-resource "kubernetes_role" "developer" {
+resource "kubernetes_role_v1" "developer" {
   for_each = toset(var.developer_namespaces)
 
   metadata {
@@ -240,7 +240,7 @@ resource "kubernetes_role" "developer" {
   }
 }
 
-resource "kubernetes_role_binding" "developer" {
+resource "kubernetes_role_binding_v1" "developer" {
   for_each = toset(var.developer_namespaces)
 
   metadata {
@@ -251,7 +251,7 @@ resource "kubernetes_role_binding" "developer" {
   role_ref {
     api_group = "rbac.authorization.k8s.io"
     kind      = "Role"
-    name      = kubernetes_role.developer[each.key].metadata[0].name
+    name      = kubernetes_role_v1.developer[each.key].metadata[0].name
   }
 
   subject {
