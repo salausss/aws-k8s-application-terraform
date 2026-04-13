@@ -119,38 +119,22 @@ resource "aws_grafana_workspace" "this" {
   data_sources = ["PROMETHEUS"]
 }
 
-#resource "grafana_data_source" "amp" {
-#  type = "prometheus"
-#  name = "${var.cluster_name}-${var.env}-amp-datasource"
-#  url  = aws_prometheus_workspace.this.prometheus_endpoint
-
-#  json_data_encoded = jsonencode({
-#    httpMethod    = "POST"
-#    sigV4Auth     = true
-#    sigV4Region   = "ap-south-1"
-#    #sigV4AuthType = "workspace-iam-role"
-#    sigV4AuthType = "default"
-#  })
-#  lifecycle {
-#    ignore_changes = all
-#  }
-#  depends_on = [aws_grafana_workspace_api_key.key]
-#}
-
-
 resource "grafana_data_source" "amp" {
-  type       = "grafana-amazonprometheus-datasource"
-  name       = "${var.cluster_name}-${var.env}-amp-datasource"
-  url        = aws_prometheus_workspace.this.prometheus_endpoint
-  is_default = true
+  type = "prometheus"
+  name = "${var.cluster_name}-${var.env}-amp-datasource"
+  url  = aws_prometheus_workspace.this.prometheus_endpoint
 
   json_data_encoded = jsonencode({
     httpMethod    = "POST"
     sigV4Auth     = true
     sigV4Region   = "ap-south-1"
     #sigV4AuthType = "workspace-iam-role"
-    defaultRegion = "ap-south-1"
+    sigV4AuthType = "default"
   })
+#  lifecycle {
+#    ignore_changes = all
+#  }
+  depends_on = [aws_grafana_workspace_api_key.key]
 }
 
 # ------------ ADOT Collector Helm Chart for Prometheus Remote Write ------------ #
