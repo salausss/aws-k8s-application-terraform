@@ -93,7 +93,7 @@ resource "kubernetes_config_map_v1_data" "aws_auth" {
 # -------------------------------------------------------
 # Admin ClusterRole + ClusterRoleBinding
 # -------------------------------------------------------
-resource "kubernetes_cluster_role" "admin" {
+resource "kubernetes_cluster_role_v1" "admin" {
 
   metadata {
     name = "eks-admin-role"
@@ -111,7 +111,7 @@ resource "kubernetes_cluster_role" "admin" {
   }
 }
 
-resource "kubernetes_cluster_role_binding" "admin" {
+resource "kubernetes_cluster_role_binding_v1" "admin" {
 
   metadata {
     name = "eks-admin-binding"
@@ -120,7 +120,7 @@ resource "kubernetes_cluster_role_binding" "admin" {
   role_ref {
     api_group = "rbac.authorization.k8s.io"
     kind      = "ClusterRole"
-    name      = kubernetes_cluster_role.admin.metadata[0].name
+    name      = kubernetes_cluster_role_v1.admin.metadata[0].name
   }
 
   subject {
