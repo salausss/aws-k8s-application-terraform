@@ -107,7 +107,7 @@ module "observability" {
   env = var.environment
   region = var.aws_region
   oidc_provider_url = module.eks.oidc_provider_url
-  oidc_provider_arn = module.eks.oidc_provider_url
+  oidc_provider_arn = module.eks.oidc_provider_arn
 }
 
 #module "postgre" {
