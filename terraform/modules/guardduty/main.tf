@@ -1,25 +1,29 @@
 data "aws_caller_identity" "current" {}
 
+# 1. Simplify the detector
 resource "aws_guardduty_detector" "this" {
   enable = true
+}
 
-  datasources {
-    s3_logs {
-      enable = true
-    }
-    kubernetes {
-      audit_logs {
-        enable = true
-      }
-    }
-    malware_protection {
-      scan_ec2_instance_with_findings {
-        ebs_volumes {
-          enable = true
-        }
-      }
-    }
-  }
+# 2. Enable S3 Protection
+resource "aws_guardduty_detector_feature" "s3_logs" {
+  detector_id = aws_guardduty_detector.this.id
+  name        = "S3_DATA_EVENTS"
+  status      = "ENABLED"
+}
+
+# 3. Enable EKS Audit Log Monitoring
+resource "aws_guardduty_detector_feature" "eks_audit" {
+  detector_id = aws_guardduty_detector.this.id
+  name        = "EKS_AUDIT_LOGS"
+  status      = "ENABLED"
+}
+
+# 4. Enable Malware Protection (EBS Scanning)
+resource "aws_guardduty_detector_feature" "ebs_malware" {
+  detector_id = aws_guardduty_detector.this.id
+  name        = "EBS_MALWARE_PROTECTION"
+  status      = "ENABLED"
 }
 
 # SNS topic for GuardDuty findings
