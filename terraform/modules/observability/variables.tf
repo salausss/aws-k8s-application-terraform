@@ -5,3 +5,8 @@ variable "cluster_name" {
 variable "environment" {
   type = string
 }
+
+variable "grafana_admin_password" {
+  type = string
+  default = "Agent12!@"
+}

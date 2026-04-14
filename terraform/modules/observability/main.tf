@@ -6,11 +6,15 @@ resource "helm_release" "kube_prometheus_stack" {
   version    = "67.0.0"
 
   create_namespace = true
-
+  atomic = true
+  cleanup_on_fail = true
+  lifecycle {
+    ignore_changes = all
+  }
   values = [yamlencode({
     grafana = {
       enabled        = true
-      adminPassword  = "admin123"   # change this
+      adminPassword  = "var.grafana_admin_password"   # change this
     }
 
     prometheus = {
@@ -19,6 +23,7 @@ resource "helm_release" "kube_prometheus_stack" {
         storageSpec = {
           volumeClaimTemplate = {
             spec = {
+              storageClassName = "gp2" 
               accessModes = ["ReadWriteOnce"]
               resources = {
                 requests = { storage = "10Gi" }
