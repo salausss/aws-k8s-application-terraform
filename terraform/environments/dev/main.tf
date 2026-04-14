@@ -70,11 +70,6 @@ module "storage" {
   kms_key_arn = module.kms.key_arn
 }
 
-#module "k8s" {
-#  source = "../../modules/k8s"
-#  env = var.environment
-#}
-
 module "application_deploy" {
   source = "../../modules/app_deploy"
 }
@@ -101,38 +96,14 @@ module "SecretsManager" {
   region              = var.aws_region
 }
 
-#module "observability" {
-#  source = "../../modules/monitoring"
-#  cluster_name = module.eks.cluster_name
-#  env = var.environment
-#  region = var.aws_region
-#  oidc_provider_url = module.eks.oidc_provider_url
-#  oidc_provider_arn = module.eks.oidc_provider_arn
-#}
-
 module "observability-2" {
   source = "../../modules/observability"
   cluster_name = module.eks.cluster_name
   environment = var.environment
 }
 
-#module "postgre" {
-#  source = "../../modules/postgre"
-#  cluster_name = module.eks.cluster_name
-#  environment = var.environment
-#  oidc_provider_arn = module.eks.oidc_provider_arn
-#  oidc_provider_url = module.eks.oidc_provider_url
-#  region = var.aws_region
-#  db_namespace      = "db"
-#  wal_retention_days = 7
-#  storage_size = "5Gi"
-#  postgres_instances = 1
-#  backup_schedule = "0 2 * * *"
-#}
-
 module "guardduty" {
   source = "../../modules/guardduty"
-
   project     = var.project_name
   environment = var.environment       
   alert_email = "salauss00@gmail.com"  

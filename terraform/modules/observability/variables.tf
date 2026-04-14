@@ -8,5 +8,5 @@ variable "environment" {
 
 variable "grafana_admin_password" {
   type = string
-  default = "Agent12!@"
+  default = "Agent12"
 }

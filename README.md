@@ -135,7 +135,6 @@ The architecture implements a comprehensive monitoring and observability strateg
 
 ### Horizontal Scaling
 - **Horizontal Pod Autoscaler (HPA)**: Automatically scales the number of pods based on CPU utilization, memory usage, or custom metrics
-- **Cluster Autoscaler**: Automatically adjusts the number of worker nodes based on pod scheduling requirements
 
 ### Vertical Scaling
 - **Vertical Pod Autoscaler (VPA)**: Automatically adjusts CPU and memory resource requests for pods based on historical usage patterns, optimizing resource allocation and costs

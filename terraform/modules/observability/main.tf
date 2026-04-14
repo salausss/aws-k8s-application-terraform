@@ -8,13 +8,15 @@ resource "helm_release" "kube_prometheus_stack" {
   create_namespace = true
   atomic = true
   cleanup_on_fail = true
+  
   lifecycle {
     ignore_changes = all
   }
+  
   values = [yamlencode({
     grafana = {
       enabled        = true
-      adminPassword  = "var.grafana_admin_password"   # change this
+      adminPassword  = var.grafana_admin_password
     }
 
     prometheus = {
