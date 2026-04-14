@@ -101,13 +101,19 @@ module "SecretsManager" {
   region              = var.aws_region
 }
 
-module "observability" {
-  source = "../../modules/monitoring"
+#module "observability" {
+#  source = "../../modules/monitoring"
+#  cluster_name = module.eks.cluster_name
+#  env = var.environment
+#  region = var.aws_region
+#  oidc_provider_url = module.eks.oidc_provider_url
+#  oidc_provider_arn = module.eks.oidc_provider_arn
+#}
+
+module "observability-2" {
+  source = "../../modules/observability"
   cluster_name = module.eks.cluster_name
-  env = var.environment
-  region = var.aws_region
-  oidc_provider_url = module.eks.oidc_provider_url
-  oidc_provider_arn = module.eks.oidc_provider_arn
+  environment = var.environment
 }
 
 #module "postgre" {
